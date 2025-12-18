@@ -35,7 +35,7 @@ const TestimonialCard: FC<TestimonialCardProps> = ({
         {feedback}
       </p>
       <div>
-        <div className="mb-4 flex items-center gap-1.5">
+        <div className="mb-4 flex items-center justify-center gap-1.5">
           {Array.from({ length: 5 }, (_, idx) => (
             <StarIcon key={idx} className={idx < stars ? 'text-tag' : 'text-transparent'} />
           ))}

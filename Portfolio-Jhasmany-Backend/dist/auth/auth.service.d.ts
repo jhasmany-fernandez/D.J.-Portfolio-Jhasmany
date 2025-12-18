@@ -34,6 +34,8 @@ export declare class AuthService {
         createdAt: Date;
         updatedAt: Date;
         projects: import("../projects/entities/project.entity").Project[];
+        skills: import("../skills/entities/skill.entity").Skill[];
+        homeSections: import("../home/entities/home.entity").HomeSection[];
     }>;
     getProfile(userId: string): Promise<import("../users/entities/user.entity").User>;
     forgotPassword(forgotPasswordDto: ForgotPasswordDto, ipAddress?: string, userAgent?: string): Promise<{

@@ -13,6 +13,8 @@ exports.User = void 0;
 const typeorm_1 = require("typeorm");
 const class_transformer_1 = require("class-transformer");
 const project_entity_1 = require("../../projects/entities/project.entity");
+const skill_entity_1 = require("../../skills/entities/skill.entity");
+const home_entity_1 = require("../../home/entities/home.entity");
 let User = class User {
 };
 exports.User = User;
@@ -53,6 +55,14 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => project_entity_1.Project, (project) => project.author),
     __metadata("design:type", Array)
 ], User.prototype, "projects", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => skill_entity_1.Skill, (skill) => skill.author),
+    __metadata("design:type", Array)
+], User.prototype, "skills", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => home_entity_1.HomeSection, (homeSection) => homeSection.author),
+    __metadata("design:type", Array)
+], User.prototype, "homeSections", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)('users')
 ], User);

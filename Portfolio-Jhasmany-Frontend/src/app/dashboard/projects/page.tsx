@@ -18,11 +18,10 @@ export default function ProjectsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [createForm, setCreateForm] = useState<Partial<Project>>({
     title: '',
-    description: '',
     shortDescription: '',
-    technologies: '',
     type: 'Personal',
-    isPublished: false
+    priority: 0,
+    cover: ''
   })
   const [editingProject, setEditingProject] = useState<ProjectWithId | null>(null)
   const [editForm, setEditForm] = useState<ProjectWithId | null>(null)
@@ -162,11 +161,10 @@ export default function ProjectsPage() {
   const resetCreateForm = () => {
     setCreateForm({
       title: '',
-      description: '',
       shortDescription: '',
-      technologies: '',
       type: 'Personal',
-      isPublished: false
+      priority: 0,
+      cover: ''
     })
     setSelectedFile(null)
     setPreviewUrl(null)
@@ -192,13 +190,10 @@ export default function ProjectsPage() {
       // Prepare project data
       const projectData = {
         ...createForm,
-        cover: imageUrl || createForm.cover || '',
-        // Convert technologies from string to array (backend expects array)
-        technologies: createForm.technologies ? [createForm.technologies] : []
+        cover: imageUrl || createForm.cover || ''
       }
 
       console.log('Project data being sent to API:', projectData)
-      console.log('Technologies type:', typeof projectData.technologies, 'Is array:', Array.isArray(projectData.technologies))
 
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -514,7 +509,7 @@ export default function ProjectsPage() {
                   Descripción Corta *
                 </label>
                 <textarea
-                  value={createForm.shortDescription}
+                  value={createForm.shortDescription ?? ''}
                   onChange={(e) => updateCreateFormField('shortDescription', e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
@@ -934,7 +929,7 @@ export default function ProjectsPage() {
                   Descripción Corta *
                 </label>
                 <textarea
-                  value={editForm.shortDescription}
+                  value={editForm.shortDescription ?? ''}
                   onChange={(e) => updateFormField('shortDescription', e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"

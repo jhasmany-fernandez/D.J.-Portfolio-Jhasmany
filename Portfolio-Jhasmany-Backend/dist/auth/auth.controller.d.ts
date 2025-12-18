@@ -24,6 +24,8 @@ export declare class AuthController {
         createdAt: Date;
         updatedAt: Date;
         projects: import("../projects/entities/project.entity").Project[];
+        skills: import("../skills/entities/skill.entity").Skill[];
+        homeSections: import("../home/entities/home.entity").HomeSection[];
     }>;
     getProfile(req: any): Promise<import("../users/entities/user.entity").User>;
     forgotPassword(forgotPasswordDto: ForgotPasswordDto, ipAddress: string, userAgent: string): Promise<{

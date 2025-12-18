@@ -12,9 +12,11 @@ export class CreateProjectDto {
   @ApiProperty({
     description: 'Project description',
     example: 'A modern portfolio website built with Next.js and NestJS',
+    required: false,
   })
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @ApiProperty({
     description: 'Project short description',

@@ -11,7 +11,7 @@ services:
     ports:
       - "0.0.0.0:3002:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
       - NEXT_PUBLIC_SITE_URL=http://181.114.111.21
       - NEXT_PUBLIC_API_URL=http://localhost:3001
@@ -49,6 +49,8 @@ services:
       - EMAIL_FROM=jhasmany.fernandez.dev@gmail.com
       - EMAIL_FROM_NAME=Jhasmany Fernandez - Portfolio
       - FRONTEND_URL=http://localhost:3002
+    volumes:
+      - ./Portfolio-Jhasmany-Backend/uploads:/home/node/app/uploads
     depends_on:
       - postgres
     networks:

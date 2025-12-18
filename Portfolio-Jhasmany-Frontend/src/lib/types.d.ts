@@ -30,10 +30,13 @@ export interface Heading {
 }
 
 export interface Testimonial {
+  id?: string
   name: string
   title?: string
   feedback: string
   image: string
   stars: number
+  isPublished?: boolean
   createdAt: string
+  updatedAt?: string
 }

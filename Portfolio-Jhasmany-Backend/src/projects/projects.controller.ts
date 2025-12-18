@@ -31,7 +31,7 @@ export class ProjectsController {
   @ApiResponse({ status: 201, description: 'Project created successfully' })
   create(@Body() createProjectDto: CreateProjectDto, @Request() req) {
     // Use a default author ID if no authentication
-    const authorId = req?.user?.userId || '7e98afce-7e6e-47d9-b6fb-bea040874ebd';
+    const authorId = req?.user?.userId || '04d0a5fa-a089-4faa-abe1-117a6bd67d17';
     return this.projectsService.create(createProjectDto, authorId);
   }
 

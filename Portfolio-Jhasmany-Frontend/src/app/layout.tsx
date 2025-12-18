@@ -6,9 +6,9 @@ import LanguageIndicator from '@/components/LanguageIndicator/LanguageIndicator'
 import NavigationWrapper from '@/components/Navigation/NavigationWrapper'
 import ThemeMenu from '@/components/Theme/ThemeMenu'
 import { LanguageProvider } from '@/contexts/LanguageContext'
-import { Fira_Code } from 'next/font/google'
+// import { Fira_Code } from 'next/font/google'
 
-const firaCode = Fira_Code({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] })
+// const firaCode = Fira_Code({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] })
 
 const title = 'Jhasmany Fernandez | Full-Stack Web Developer in Chicago'
 
@@ -46,8 +46,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" data-theme="dark">
-      <body className={`${firaCode.className}`}>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <LanguageProvider>
           <header>
             <NavigationWrapper />

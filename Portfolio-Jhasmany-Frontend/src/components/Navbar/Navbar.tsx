@@ -20,8 +20,8 @@ const navItems = [
     href: '/#services',
   },
   {
-    label: '_contact',
-    href: '/#contact',
+    label: '_testimonials',
+    href: '/#testimonials',
   },
   {
     label: '_login',

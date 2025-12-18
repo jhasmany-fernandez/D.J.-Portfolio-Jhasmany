@@ -29,9 +29,26 @@ export class UploadController {
       },
       fileFilter: (req, file, callback) => {
         // Validar tipo de archivo
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+        const allowedTypes = [
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/svg+xml',
+          'image/bmp',
+          'image/tiff',
+          'image/avif'
+        ];
+
+        console.log('[Upload] Received file:', file.originalname, 'MIME type:', file.mimetype);
+
         if (!allowedTypes.includes(file.mimetype)) {
-          return callback(new BadRequestException('Only image files are allowed'), false);
+          console.error('[Upload] Invalid file type:', file.mimetype, 'Allowed:', allowedTypes);
+          return callback(
+            new BadRequestException(`Only image files are allowed. Received: ${file.mimetype}`),
+            false
+          );
         }
         callback(null, true);
       },

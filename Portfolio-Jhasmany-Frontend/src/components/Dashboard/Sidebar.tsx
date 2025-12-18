@@ -54,9 +54,38 @@ const ContentIcon = () => (
   </svg>
 )
 
+const ServicesIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M12 1v6m0 6v6M1 12h6m6 0h6"></path>
+    <path d="m4.93 4.93 4.24 4.24m5.66 0 4.24-4.24m0 14.14-4.24-4.24m-5.66 0-4.24 4.24"></path>
+  </svg>
+)
+
+const SkillsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+    <path d="M2 17l10 5 10-5"></path>
+    <path d="M2 12l10 5 10-5"></path>
+  </svg>
+)
+
+const TestimonialsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+  </svg>
+)
+
 const ChevronDownIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+)
+
+const HomeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+    <polyline points="9 22 9 12 15 12 15 22"></polyline>
   </svg>
 )
 
@@ -79,22 +108,34 @@ const sidebarItems: SidebarItem[] = [
     description: 'Dashboard principal'
   },
   {
+    label: '_home',
+    href: '/dashboard/home',
+    icon: HomeIcon,
+    description: 'Gestión sección Hero'
+  },
+  {
     label: '_projects',
     href: '/dashboard/projects',
     icon: ProjectsIcon,
     description: 'Gestión de proyectos'
   },
   {
-    label: '_analytics',
-    href: '/dashboard/analytics',
-    icon: AnalyticsIcon,
-    description: 'Estadísticas y métricas'
+    label: '_services',
+    href: '/dashboard/services',
+    icon: ServicesIcon,
+    description: 'Gestión de servicios'
   },
   {
-    label: '_content',
-    href: '/dashboard/content',
-    icon: ContentIcon,
-    description: 'Gestión de contenido'
+    label: '_skills',
+    href: '/dashboard/skills',
+    icon: SkillsIcon,
+    description: 'Gestión de tecnologías'
+  },
+  {
+    label: '_testimonials',
+    href: '/dashboard/testimonials',
+    icon: TestimonialsIcon,
+    description: 'Gestión de testimonios'
   },
   {
     label: '_users',

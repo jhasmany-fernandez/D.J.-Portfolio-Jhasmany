@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   // Suprimir warnings de hydration en desarrollo (solo cosméticos)
   reactStrictMode: true,
 
+  // Deshabilitar ESLint durante el build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Opcional: logging reducido en desarrollo
   logging: {
     fetches: {

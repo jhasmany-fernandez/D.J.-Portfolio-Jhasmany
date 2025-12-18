@@ -9,6 +9,12 @@ import { ContactModule } from './contact/contact.module';
 import { UsersModule } from './users/users.module';
 import { NewsletterModule } from './newsletter/newsletter.module';
 import { UploadModule } from './upload/upload.module';
+import { ServicesModule } from './services/services.module';
+import { ServicesSectionModule } from './services-section/services-section.module';
+import { SkillsModule } from './skills/skills.module';
+import { HomeModule } from './home/home.module';
+import { TestimonialsModule } from './testimonials/testimonials.module';
+import { TestimonialsSectionModule } from './testimonials-section/testimonials-section.module';
 import { DatabaseConfig } from './config/database.config';
 
 @Module({
@@ -41,6 +47,12 @@ import { DatabaseConfig } from './config/database.config';
     AuthModule,
     UsersModule,
     ProjectsModule,
+    ServicesModule,
+    ServicesSectionModule,
+    SkillsModule,
+    HomeModule,
+    TestimonialsModule,
+    TestimonialsSectionModule,
     ContactModule,
     NewsletterModule,
     UploadModule,

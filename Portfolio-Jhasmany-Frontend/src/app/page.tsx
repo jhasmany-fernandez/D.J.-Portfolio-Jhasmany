@@ -1,25 +1,46 @@
-import { skillList } from '@/appData'
-import ContactSection from '@/components/Contact/ContactSection'
-import Hero from '@/components/Hero/Hero'
+import HeroClient from '@/components/Hero/HeroClient'
 import ProjectSectionClient from '@/components/Projects/ProjectSectionClient'
-import ServiceSection from '@/components/Services/ServiceSection'
-import Skills from '@/components/Skills/Skills'
-import TestimonialSection from '@/components/Testimonials/TestimonialSection'
-import { getAllProjects, getAllTestimonials } from '@/services'
+import ServiceSectionClient from '@/components/Services/ServiceSectionClient'
+import SkillsClient from '@/components/Skills/SkillsClient'
+import TestimonialSectionClient from '@/components/Testimonials/TestimonialSectionClient'
+import { getAllProjects, getAllServices, getAllSkills, getAllTestimonials } from '@/services'
+
+// Disable caching for this page to show real-time updates
+export const revalidate = 0
+
+async function getActiveHomeSection() {
+  try {
+    const apiUrl = process.env.API_URL || 'http://backend:3001'
+    const response = await fetch(`${apiUrl}/api/home/active`, {
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching active home section:', error)
+    return null
+  }
+}
 
 export default async function Home() {
   const projects = await getAllProjects()
+  const services = await getAllServices()
+  const skills = await getAllSkills()
   const testimonials = await getAllTestimonials()
+  const homeSection = await getActiveHomeSection()
 
   return (
     <main>
-      <Hero />
-      <Skills skills={skillList} />
+      <HeroClient initialHomeSection={homeSection} />
+      <SkillsClient initialSkills={skills} />
       <div className="mx-auto my-8 max-w-[1200px] px-4 md:my-[3.75rem]">
         <ProjectSectionClient initialProjects={projects} />
-        <ServiceSection />
-        <TestimonialSection testimonials={testimonials} />
-        <ContactSection />
+        <ServiceSectionClient initialServices={services} />
+        <TestimonialSectionClient initialTestimonials={testimonials} />
       </div>
     </main>
   )

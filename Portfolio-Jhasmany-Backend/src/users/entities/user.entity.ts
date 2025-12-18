@@ -8,6 +8,8 @@ import {
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Project } from '../../projects/entities/project.entity';
+import { Skill } from '../../skills/entities/skill.entity';
+import { HomeSection } from '../../home/entities/home.entity';
 
 @Entity('users')
 export class User {
@@ -38,4 +40,10 @@ export class User {
 
   @OneToMany(() => Project, (project) => project.author)
   projects: Project[];
+
+  @OneToMany(() => Skill, (skill) => skill.author)
+  skills: Skill[];
+
+  @OneToMany(() => HomeSection, (homeSection) => homeSection.author)
+  homeSections: HomeSection[];
 }

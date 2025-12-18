@@ -1,4 +1,6 @@
 import { Project } from '../../projects/entities/project.entity';
+import { Skill } from '../../skills/entities/skill.entity';
+import { HomeSection } from '../../home/entities/home.entity';
 export declare class User {
     id: string;
     email: string;
@@ -9,4 +11,6 @@ export declare class User {
     createdAt: Date;
     updatedAt: Date;
     projects: Project[];
+    skills: Skill[];
+    homeSections: HomeSection[];
 }

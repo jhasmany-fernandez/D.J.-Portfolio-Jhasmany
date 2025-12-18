@@ -47,9 +47,21 @@ __decorate([
             fileSize: 5 * 1024 * 1024,
         },
         fileFilter: (req, file, callback) => {
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+            const allowedTypes = [
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'image/gif',
+                'image/webp',
+                'image/svg+xml',
+                'image/bmp',
+                'image/tiff',
+                'image/avif'
+            ];
+            console.log('[Upload] Received file:', file.originalname, 'MIME type:', file.mimetype);
             if (!allowedTypes.includes(file.mimetype)) {
-                return callback(new common_1.BadRequestException('Only image files are allowed'), false);
+                console.error('[Upload] Invalid file type:', file.mimetype, 'Allowed:', allowedTypes);
+                return callback(new common_1.BadRequestException(`Only image files are allowed. Received: ${file.mimetype}`), false);
             }
             callback(null, true);
         },
