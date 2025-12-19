@@ -38,3 +38,44 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ============================================
+# Frontend (Next.js) - Portfolio-Jhasmany-Frontend
+# ============================================
+Portfolio-Jhasmany-Frontend/node_modules/
+Portfolio-Jhasmany-Frontend/.next/
+Portfolio-Jhasmany-Frontend/out/
+Portfolio-Jhasmany-Frontend/build/
+Portfolio-Jhasmany-Frontend/dist/
+Portfolio-Jhasmany-Frontend/.env*
+Portfolio-Jhasmany-Frontend/.vercel
+Portfolio-Jhasmany-Frontend/.turbo
+Portfolio-Jhasmany-Frontend/*.tsbuildinfo
+Portfolio-Jhasmany-Frontend/next-env.d.ts
+Portfolio-Jhasmany-Frontend/.DS_Store
+Portfolio-Jhasmany-Frontend/npm-debug.log*
+Portfolio-Jhasmany-Frontend/yarn-debug.log*
+Portfolio-Jhasmany-Frontend/yarn-error.log*
+Portfolio-Jhasmany-Frontend/pnpm-debug.log*
+
+# ============================================
+# Backend (NestJS) - Portfolio-Jhasmany-Backend
+# ============================================
+Portfolio-Jhasmany-Backend/node_modules/
+Portfolio-Jhasmany-Backend/dist/
+Portfolio-Jhasmany-Backend/build/
+Portfolio-Jhasmany-Backend/.env*
+Portfolio-Jhasmany-Backend/uploads/
+Portfolio-Jhasmany-Backend/*.log
+Portfolio-Jhasmany-Backend/logs/
+Portfolio-Jhasmany-Backend/.DS_Store
+Portfolio-Jhasmany-Backend/npm-debug.log*
+Portfolio-Jhasmany-Backend/yarn-debug.log*
+Portfolio-Jhasmany-Backend/yarn-error.log*
+Portfolio-Jhasmany-Backend/pnpm-debug.log*
+Portfolio-Jhasmany-Backend/*.tsbuildinfo
+
+# ============================================
+# Docker
+# ============================================
+.docker/
