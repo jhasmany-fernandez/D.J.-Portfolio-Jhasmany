@@ -136,20 +136,12 @@ export const skillList = [
 ]
 
 export const footerLinks = [
-  { title: 'About', href: '#' },
+  { title: 'Home', href: '#' },
   { title: 'Projects', href: '#projects' },
   { title: 'Testimonials', href: '#testimonials' },
   {
-    title: 'Blogs',
-    href: '#blogs',
-  },
-  {
     title: 'Services',
     href: '#services',
-  },
-  {
-    title: 'Contact',
-    href: '#contact',
   },
 ]
 

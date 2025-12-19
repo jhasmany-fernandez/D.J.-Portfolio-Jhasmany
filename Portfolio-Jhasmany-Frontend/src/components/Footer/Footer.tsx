@@ -3,26 +3,74 @@
 import { footerLinks } from '@/appData'
 import { socials } from '@/appData/personal'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useEffect, useState } from 'react'
 import Logo from '../Navbar/Logo'
+
+interface FooterData {
+  companyName: string
+  description: string
+  email: string
+  phone: string
+  locationLine1: string
+  locationLine2: string
+}
 
 const Footer = () => {
   const { currentLanguage, setLanguage, availableLanguages } = useLanguage()
+  const [footerData, setFooterData] = useState<FooterData>({
+    companyName: 'Jhasmany Fernández',
+    description: 'Full-Stack Developer specializing in modern web technologies.',
+    email: 'jhasmany.fernandez.dev@gmail.com',
+    phone: '+591 65856280',
+    locationLine1: 'Santa Cruz de la Sierra',
+    locationLine2: 'Bolivia',
+  })
+
+  useEffect(() => {
+    const fetchFooterData = async () => {
+      try {
+        console.log('🔄 Footer: Fetching data from API...')
+        const response = await fetch('/api/footer')
+        if (response.ok) {
+          const data = await response.json()
+          console.log('✅ Footer: Data received:', data.companyName)
+          setFooterData(data)
+        }
+      } catch (error) {
+        console.error('❌ Footer: Error fetching data:', error)
+      }
+    }
+
+    // Fetch immediately
+    console.log('🚀 Footer: Iniciando polling cada 1 segundo')
+    fetchFooterData()
+
+    // Set up polling to check for updates every 1 second
+    const pollInterval = setInterval(() => {
+      fetchFooterData()
+    }, 1000) // 1 second
+
+    // Cleanup interval on component unmount
+    return () => {
+      console.log('🛑 Footer: Deteniendo polling')
+      clearInterval(pollInterval)
+    }
+  }, [])
   return (
     <footer className="bg-secondary relative flex min-h-[560px] flex-col justify-between gap-20 overflow-hidden px-4 py-14 md:p-14">
       <div className="relative z-20 grid grid-cols-1 items-start gap-20 md:grid-cols-2 md:gap-12">
         <div>
           <h5 className="mb-8 flex items-center gap-2">
             <Logo width={30} height={24} />
-            <span className="text-neutral text-lg font-medium">SmartSoftDevs</span>
+            <span className="text-neutral text-lg font-medium">{footerData.companyName}</span>
           </h5>
           <p className="text-tertiary-content">
-            The first free end-to-end analytics service for the site, designed to work with
-            enterprises of various levels and business segments.
+            {footerData.description}
           </p>
           <a
             href="#"
             className="text-neutral mt-4 inline-flex items-center gap-2 text-xs hover:underline">
-            More about us <span className="bg-neutral inline-block size-[10px] rounded-full" />
+            More about me <span className="bg-neutral inline-block size-[10px] rounded-full" />
           </a>
         </div>
 
@@ -62,22 +110,22 @@ const Footer = () => {
             <div className="flex flex-col">
               <h5 className="text-neutral mb-4 text-lg font-medium">Contact Us</h5>
               <a
-                href="mailto:jhasmany.fernandez.dev@gmail.com"
+                href={`mailto:${footerData.email}`}
                 className="text-tertiary-content hover:text-neutral text-sm font-light transition-colors duration-300">
-                jhasmany.fernandez.dev@gmail.com
+                {footerData.email}
               </a>
               <a
-                href="tel:+92 3123456789"
+                href={`tel:${footerData.phone}`}
                 className="text-tertiary-content hover:text-neutral text-sm font-light transition-colors duration-300">
-                +591 65856280
+                {footerData.phone}
               </a>
             </div>
             <div>
               <div>
                 <h5 className="text-neutral mb-4 text-lg font-medium">Location</h5>
                 <address className="text-tertiary-content flex flex-col text-sm font-light">
-                  <span>973, Santa Cruz de Sierra</span>
-                  <span>Bolivia 25/10/8, Office 1</span>
+                  <span>{footerData.locationLine1}</span>
+                  <span>{footerData.locationLine2}</span>
                 </address>
               </div>
             </div>

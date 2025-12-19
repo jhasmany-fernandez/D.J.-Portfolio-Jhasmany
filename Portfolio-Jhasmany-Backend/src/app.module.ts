@@ -15,6 +15,7 @@ import { SkillsModule } from './skills/skills.module';
 import { HomeModule } from './home/home.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
 import { TestimonialsSectionModule } from './testimonials-section/testimonials-section.module';
+import { FooterModule } from './footer/footer.module';
 import { DatabaseConfig } from './config/database.config';
 
 @Module({
@@ -53,6 +54,7 @@ import { DatabaseConfig } from './config/database.config';
     HomeModule,
     TestimonialsModule,
     TestimonialsSectionModule,
+    FooterModule,
     ContactModule,
     NewsletterModule,
     UploadModule,
