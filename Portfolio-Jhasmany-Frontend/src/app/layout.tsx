@@ -48,9 +48,7 @@ export default function RootLayout({
     <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body suppressHydrationWarning>
         <LanguageProvider>
-          <header>
-            <NavigationWrapper />
-          </header>
+          <NavigationWrapper />
           {children}
           <ThemeMenu />
           <Footer />
