@@ -121,6 +121,12 @@ const sidebarItems: SidebarItem[] = [
     description: 'Gestión sección Hero'
   },
   {
+    label: '_skills',
+    href: '/dashboard/skills',
+    icon: SkillsIcon,
+    description: 'Gestión de tecnologías'
+  },
+  {
     label: '_projects',
     href: '/dashboard/projects',
     icon: ProjectsIcon,
@@ -131,12 +137,6 @@ const sidebarItems: SidebarItem[] = [
     href: '/dashboard/services',
     icon: ServicesIcon,
     description: 'Gestión de servicios'
-  },
-  {
-    label: '_skills',
-    href: '/dashboard/skills',
-    icon: SkillsIcon,
-    description: 'Gestión de tecnologías'
   },
   {
     label: '_testimonials',
