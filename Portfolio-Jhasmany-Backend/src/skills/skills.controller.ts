@@ -23,7 +23,7 @@ export class SkillsController {
   @ApiOperation({ summary: 'Create a new skill' })
   @ApiResponse({ status: 201, description: 'Skill created successfully' })
   create(@Body() createSkillDto: CreateSkillDto, @Request() req) {
-    const authorId = req?.user?.userId || '04d0a5fa-a089-4faa-abe1-117a6bd67d17';
+    const authorId = req?.user?.userId || '1b4d78ea-4cad-4daa-9b42-0dd30436b980';
     return this.skillsService.create(createSkillDto, authorId);
   }
 

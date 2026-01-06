@@ -372,55 +372,58 @@ export default function SkillsPage() {
       {/* Skills Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {skills.map((skill) => (
-          <div key={skill.id} className="bg-secondary border-border rounded-lg border p-6 hover:shadow-lg transition-shadow duration-200">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl">
-                  {skill.icon || ''}
-                </div>
-                {skill.imageUrl && (
-                  <img
-                    src={skill.imageUrl}
-                    alt={skill.name}
-                    className="w-12 h-12 rounded object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none'
-                    }}
-                  />
-                )}
+          <div key={skill.id} className="bg-secondary border-border rounded-lg border p-6 hover:shadow-lg transition-shadow duration-200 flex flex-col">
+            {/* Icon/Image Section */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-4xl">
+                {skill.icon || ''}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="bg-accent/20 text-accent px-2 py-1 rounded-full text-xs">
-                  Order {skill.order}
-                </span>
-                <button
-                  onClick={() => togglePublished(skill.id, skill.isPublished)}
-                  className={`px-2 py-1 rounded-full text-xs transition-colors duration-200 ${
-                    skill.isPublished
-                      ? 'bg-green-500/20 text-green-700 hover:bg-green-500/30'
-                      : 'bg-gray-500/20 text-gray-700 hover:bg-gray-500/30'
-                  }`}
-                  title={skill.isPublished ? 'Published - Click to unpublish' : 'Unpublished - Click to publish'}
-                >
-                  {skill.isPublished ? '✓ Published' : '✗ Private'}
-                </button>
-              </div>
+              {skill.imageUrl && (
+                <img
+                  src={skill.imageUrl}
+                  alt={skill.name}
+                  className="w-12 h-12 rounded object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+              )}
             </div>
 
-            <h3 className="text-lg font-semibold text-neutral mb-4 truncate" title={skill.name}>
+            {/* Name */}
+            <h3 className="text-lg font-semibold text-neutral mb-3 truncate" title={skill.name}>
               {skill.name}
             </h3>
 
-            <div className="flex gap-2">
+            {/* Status Badges */}
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="bg-accent/20 text-accent px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap">
+                Order: {skill.order}
+              </span>
+              <button
+                onClick={() => togglePublished(skill.id, skill.isPublished)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200 whitespace-nowrap ${
+                  skill.isPublished
+                    ? 'bg-green-500/20 text-green-700 hover:bg-green-500/30'
+                    : 'bg-gray-500/20 text-gray-700 hover:bg-gray-500/30'
+                }`}
+                title={skill.isPublished ? 'Published - Click to unpublish' : 'Unpublished - Click to publish'}
+              >
+                {skill.isPublished ? '✓ Published' : '✗ Private'}
+              </button>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 mt-auto">
               <button
                 onClick={() => startEditing(skill)}
-                className="bg-accent hover:bg-accent/80 text-secondary px-3 py-1 rounded text-sm transition-colors duration-200"
+                className="flex-1 bg-accent hover:bg-accent/80 text-secondary px-3 py-2 rounded text-sm transition-colors duration-200 font-medium"
               >
                 Edit
               </button>
               <button
                 onClick={() => deleteSkill(skill.id)}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors duration-200 font-medium"
               >
                 Delete
               </button>
