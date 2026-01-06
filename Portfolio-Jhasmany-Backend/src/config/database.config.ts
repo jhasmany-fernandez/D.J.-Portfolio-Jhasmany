@@ -18,7 +18,7 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       database: this.configService.get('DB_NAME', 'portfolio_db'),
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: true, // Temporarily enabled for schema updates
-      logging: !isProduction,
+      logging: false, // Disabled to reduce console logs
       migrations: [__dirname + '/../migrations/*{.ts,.js}'],
       migrationsRun: true,
       ssl: false, // Disable SSL for Docker development

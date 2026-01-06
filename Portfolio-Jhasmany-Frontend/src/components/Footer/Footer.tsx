@@ -29,32 +29,18 @@ const Footer = () => {
   useEffect(() => {
     const fetchFooterData = async () => {
       try {
-        console.log('🔄 Footer: Fetching data from API...')
         const response = await fetch('/api/footer')
         if (response.ok) {
           const data = await response.json()
-          console.log('✅ Footer: Data received:', data.companyName)
           setFooterData(data)
         }
       } catch (error) {
-        console.error('❌ Footer: Error fetching data:', error)
+        console.error('Error fetching footer data:', error)
       }
     }
 
-    // Fetch immediately
-    console.log('🚀 Footer: Iniciando polling cada 1 segundo')
+    // Fetch only once on mount
     fetchFooterData()
-
-    // Set up polling to check for updates every 1 second
-    const pollInterval = setInterval(() => {
-      fetchFooterData()
-    }, 1000) // 1 second
-
-    // Cleanup interval on component unmount
-    return () => {
-      console.log('🛑 Footer: Deteniendo polling')
-      clearInterval(pollInterval)
-    }
   }, [])
   return (
     <footer className="bg-secondary relative flex min-h-[560px] flex-col justify-between gap-20 overflow-hidden px-4 py-14 md:p-14">

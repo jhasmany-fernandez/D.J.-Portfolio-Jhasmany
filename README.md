@@ -1,78 +1,44 @@
-# 🚀 Jhasmany Portfolio - Full Stack Application
+# Portfolio Jhasmany Fernández - Full Stack Application
 
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-15.1.7-black.svg)](https://nextjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18-green.svg)](https://nodejs.org/)
-[![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-green.svg)](https://nginx.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-10.0.0-red.svg)](https://nestjs.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 
-Portfolio completo de desarrollador Full Stack con Next.js, Node.js y Nginx, completamente dockerizado y accesible desde internet con HTTPS.
+Portfolio personal de desarrollador Full Stack con Next.js 15, NestJS, TypeScript y PostgreSQL.
 
 ---
 
 ## 📋 Tabla de Contenidos
 
-- [🏗️ Arquitectura](#️-arquitectura)
-- [⚡ Inicio Rápido](#-inicio-rápido)
-- [🌐 Acceso a la Aplicación](#-acceso-a-la-aplicación)
-- [🐳 Configuración Docker](#-configuración-docker)
-- [🌍 Configuración de Red (Internet)](#-configuración-de-red-internet)
-- [🔒 HTTPS / SSL](#-https--ssl)
-- [📂 Estructura del Proyecto](#-estructura-del-proyecto)
-- [🔧 Comandos Útiles](#-comandos-útiles)
-- [🐛 Solución de Problemas](#-solución-de-problemas)
-- [📚 Documentación Adicional](#-documentación-adicional)
+- [Stack Tecnológico](#-stack-tecnológico)
+- [Inicio Rápido](#-inicio-rápido)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Configuración](#-configuración)
+- [Desarrollo](#-desarrollo)
+- [Scripts Disponibles](#-scripts-disponibles)
+- [Características](#-características)
 
 ---
 
-## 🏗️ Arquitectura
+## 🚀 Stack Tecnológico
 
-### Arquitectura de Servicios
+### Frontend
+- **Next.js 15.1.7** - Framework React con App Router
+- **React 19** - Biblioteca de UI
+- **TypeScript 5** - Tipado estático
+- **Tailwind CSS 4** - Framework CSS utility-first
+- **Zod** - Validación de esquemas
+- **Ky** - Cliente HTTP
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      DOCKER COMPOSE                          │
-│  ┌────────────┐    ┌──────────────┐    ┌───────────────┐   │
-│  │   Nginx    │◄──►│   Frontend   │    │    Backend    │   │
-│  │  (Proxy)   │    │   (Next.js)  │◄──►│   (Node.js)   │   │
-│  │   :80,:443 │    │     :3000    │    │     :3001     │   │
-│  └────────────┘    └──────────────┘    └───────────────┘   │
-│        ▲                                                      │
-│        │  Expone: 8000 (HTTP), 8001 (API), 8443 (HTTPS)     │
-└────────┼──────────────────────────────────────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────────────────────────────┐
-│                       WSL2 DEBIAN                          │
-│                    IP: 172.22.208.47                       │
-└────────┬───────────────────────────────────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────────────────────────────┐
-│                  WINDOWS PORT PROXY                        │
-│    80 → WSL2:8000  |  443 → WSL2:8443  |  8080 → WSL2:8001│
-│                   IP: 192.168.0.19                         │
-└────────┬───────────────────────────────────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────────────────────────────┐
-│                   ROUTER PORT FORWARDING                   │
-│      80 → 192.168.0.19:80  |  443, 8080, 22               │
-└────────┬───────────────────────────────────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────────────────────────────┐
-│                        INTERNET                            │
-│                   IP: 181.114.111.21                       │
-└────────────────────────────────────────────────────────────┘
-```
-
-### Stack Tecnológico
-
-- **Frontend**: Next.js 15.1.7 + TypeScript + Tailwind CSS
-- **Backend**: Node.js + Express.js
-- **Reverse Proxy**: Nginx Alpine
-- **Containerización**: Docker & Docker Compose
-- **SSL/TLS**: Certificado autofirmado (desarrollo) / Let's Encrypt (producción)
+### Backend
+- **NestJS 10** - Framework Node.js
+- **TypeORM** - ORM para PostgreSQL
+- **PostgreSQL 15** - Base de datos relacional
+- **JWT** - Autenticación
+- **Nodemailer** - Envío de emails
+- **Swagger** - Documentación API
 
 ---
 
@@ -80,570 +46,365 @@ Portfolio completo de desarrollador Full Stack con Next.js, Node.js y Nginx, com
 
 ### Prerrequisitos
 
-- WSL2 con Debian (Windows) o Linux nativo
-- Docker & Docker Compose
-- PowerShell (Windows)
-- Acceso al router para port forwarding
+- **Node.js 20+** ([Descargar](https://nodejs.org/))
+- **PostgreSQL 15+** ([Descargar](https://www.postgresql.org/download/))
+- **Git** ([Descargar](https://git-scm.com/))
 
-### 🚀 Instalación Rápida
+### Instalación
 
-#### 1. Levantar Servicios Docker
-
-```bash
-cd ~/Repository-Docker/D.J.-Portfolio-Jhasmany-Docker
-docker compose up -d
-```
-
-#### 2. Verificar Estado
+#### 1. Clonar el repositorio
 
 ```bash
-docker compose ps
-./check-services.sh
+git clone <repository-url>
+cd D.J.-Portfolio-Jhasmany
 ```
 
-#### 3. Configurar Port Forwarding (Windows)
+#### 2. Configurar PostgreSQL
 
-En PowerShell como **Administrador**:
-
-```powershell
-cd C:\PortfolioSetup
-.\actualizar-port-forwarding.ps1
-```
-
-#### 4. ¡Listo! 🎉
-
-- **Local**: http://localhost:8000
-- **Red local**: http://192.168.0.19
-- **Internet**: http://181.114.111.21
-
----
-
-## 🌐 Acceso a la Aplicación
-
-### 📍 URLs Locales (WSL2)
-
-| Servicio | URL | Descripción |
-|----------|-----|-------------|
-| Frontend | http://localhost:8000 | Aplicación Next.js |
-| Backend API | http://localhost:8001 | API REST |
-| HTTPS Frontend | https://localhost:8443 | Frontend con SSL |
-
-### 🏠 URLs Red Local (Windows/Dispositivos)
-
-| Servicio | URL | Descripción |
-|----------|-----|-------------|
-| Frontend | http://192.168.0.19 | Desde Windows/WiFi |
-| Backend | http://192.168.0.19:8080 | API desde red local |
-| HTTPS | https://192.168.0.19 | Con advertencia SSL |
-
-### 🌍 URLs Públicas (Internet)
-
-| Servicio | URL | Descripción |
-|----------|-----|-------------|
-| Frontend HTTP | http://181.114.111.21 | Acceso público |
-| Backend API | http://181.114.111.21:8080 | API pública |
-| HTTPS | https://181.114.111.21 | SSL autofirmado |
-
----
-
-## 🐳 Configuración Docker
-
-### Servicios Incluidos
-
-#### Nginx (Reverse Proxy)
-- **Puertos Expuestos**: 8000 (HTTP), 8001 (API), 8443 (HTTPS)
-- **Función**: Proxy inverso para frontend y backend
-- **Configuración**: `nginx/nginx.conf`
-- **SSL**: Certificados en `nginx/ssl/`
-
-#### Frontend (Next.js)
-- **Puerto Interno**: 3000
-- **Build**: Standalone output optimizado
-- **Variables**: NODE_ENV=production, NEXT_TELEMETRY_DISABLED=1
-
-#### Backend (Node.js)
-- **Puerto Interno**: 3001
-- **Health Check**: Habilitado
-- **Variables**: NODE_ENV=production, PORT=3001
-
-### Docker Compose
-
-```yaml
-services:
-  nginx:      # Reverse Proxy
-  frontend:   # Next.js App
-  backend:    # Node.js API
-```
-
-### Comandos Docker Principales
+Opción A: Instalar PostgreSQL localmente (Windows/Mac/Linux)
 
 ```bash
-# Levantar servicios
-docker compose up -d
-
-# Ver logs en tiempo real
-docker compose logs -f
-
-# Logs de servicio específico
-docker compose logs -f nginx
-docker compose logs -f frontend
-docker compose logs -f backend
-
-# Reiniciar servicios
-docker compose restart
-
-# Detener servicios
-docker compose down
-
-# Reconstruir desde cero
-docker compose down
-docker compose up --build -d
-
-# Ver estado detallado
-docker compose ps
+# Crear base de datos
+psql -U postgres
+CREATE DATABASE portfolio_db;
+\q
 ```
 
----
-
-## 🌍 Configuración de Red (Internet)
-
-### Información de Red
-
-| Componente | Valor | Descripción |
-|------------|-------|-------------|
-| IP Pública | 181.114.111.21 | IP estática del ISP |
-| IP Windows | 192.168.0.19 | IP local del PC |
-| IP WSL2 | 172.22.208.47 | IP interna de WSL2 |
-| Red Local | 192.168.0.x | Rango DHCP |
-
-### 1️⃣ Port Forwarding en Windows
-
-El tráfico fluye: **Internet → Router → Windows → WSL2 → Docker**
-
-**Script Automático (Recomendado):**
-
-```powershell
-# PowerShell como Administrador
-cd C:\PortfolioSetup
-.\actualizar-port-forwarding.ps1
-```
-
-**Manual:**
-
-```powershell
-$wsl_ip = (wsl hostname -I).Trim().Split()[0]
-
-# Frontend (80 → 8000)
-netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=8000 connectaddress=$wsl_ip
-
-# Backend (8080 → 8001)
-netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=8001 connectaddress=$wsl_ip
-
-# HTTPS (443 → 8443)
-netsh interface portproxy add v4tov4 listenport=443 listenaddress=0.0.0.0 connectport=8443 connectaddress=$wsl_ip
-
-# Verificar
-netsh interface portproxy show all
-```
-
-### 2️⃣ Firewall de Windows
-
-```powershell
-# Habilitar puertos en firewall
-New-NetFirewallRule -DisplayName "Portfolio Frontend" -Direction Inbound -LocalPort 80 -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "Portfolio Backend" -Direction Inbound -LocalPort 8080 -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "Portfolio HTTPS" -Direction Inbound -LocalPort 443 -Protocol TCP -Action Allow
-```
-
-### 3️⃣ Port Forwarding en Router
-
-**Configuración en el Router:**
-
-| Puerto Externo | IP Interna | Puerto Interno | Protocolo |
-|----------------|------------|----------------|-----------|
-| 80 | 192.168.0.19 | 80 | TCP |
-| 8080 | 192.168.0.19 | 8080 | TCP |
-| 443 | 192.168.0.19 | 443 | TCP |
-| 22 | 192.168.0.19 | 22 | TCP |
-
-**Acceso al Router:**
-- URL: http://192.168.0.1 o http://181.114.111.1
-- Sección: "Virtual Servers" o "Port Forwarding"
-
-### 4️⃣ Verificación
+Opción B: Usar PostgreSQL en Docker (recomendado)
 
 ```bash
-# En WSL2 - Verificar servicios
-./check-services.sh
-
-# Verificar desde internet (datos móviles 4G)
-# http://181.114.111.21
+docker run -d \
+  --name portfolio-postgres \
+  -p 5432:5432 \
+  -e POSTGRES_DB=portfolio_db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=Postgres2307*** \
+  -v portfolio_data:/var/lib/postgresql/data \
+  postgres:15-alpine
 ```
 
-```powershell
-# En PowerShell - Verificar configuración
-.\diagnostico.ps1
-.\verify-nginx-setup.ps1
-```
-
----
-
-## 🔒 HTTPS / SSL
-
-### Certificado Autofirmado (Desarrollo)
-
-**Ya configurado** con certificado SSL autofirmado válido por 365 días.
-
-#### Ubicación de Certificados
-
-```
-nginx/ssl/
-├── nginx-selfsigned.crt    # Certificado
-└── nginx-selfsigned.key    # Llave privada
-```
-
-#### Habilitar HTTPS (PowerShell)
-
-```powershell
-cd C:\PortfolioSetup
-.\habilitar-https.ps1
-```
-
-#### Acceso HTTPS
-
-- **URL**: https://181.114.111.21
-- **Advertencia**: El navegador mostrará "Conexión no privada"
-- **Solución**: Click en "Avanzado" → "Continuar al sitio"
-
-### Let's Encrypt (Producción)
-
-Para certificado válido sin advertencias:
-
-#### Prerrequisitos
-- Dominio propio (ej: tuportfolio.com)
-- DNS apuntando a 181.114.111.21
-
-#### Instalación
+#### 3. Configurar Backend
 
 ```bash
-# Instalar Certbot
-sudo apt install certbot -y
+cd Portfolio-Jhasmany-Backend
 
-# Detener Nginx temporal
-docker compose stop nginx
+# Instalar dependencias
+npm install
 
-# Obtener certificado
-sudo certbot certonly --standalone -d tudominio.com
+# El archivo .env ya está creado con la configuración necesaria
+# Editar si necesitas cambiar credenciales de BD o email
 
-# Copiar certificados a nginx/ssl/
-sudo cp /etc/letsencrypt/live/tudominio.com/fullchain.pem nginx/ssl/
-sudo cp /etc/letsencrypt/live/tudominio.com/privkey.pem nginx/ssl/
+# Ejecutar migraciones
+npm run typeorm migration:run
 
-# Actualizar nginx.conf con rutas nuevas
-# Reiniciar Nginx
-docker compose start nginx
+# Iniciar en modo desarrollo
+npm run start:dev
 ```
 
-### Cloudflare Tunnel (Alternativa)
+El backend estará corriendo en `http://localhost:3001`
 
-Si no tienes dominio o el ISP bloquea puertos:
+#### 4. Configurar Frontend
 
-- ✅ HTTPS automático
-- ✅ Sin port forwarding
-- ✅ Dominio gratis (.trycloudflare.com)
+```bash
+cd Portfolio-Jhasmany-Frontend
 
-Ver documentación en `C:\PortfolioSetup\HTTPS-CONFIGURADO.txt`
+# Instalar dependencias
+npm install
+
+# El archivo .env.local ya está creado
+# Iniciar en modo desarrollo
+npm run dev
+```
+
+El frontend estará corriendo en `http://localhost:3000`
 
 ---
 
 ## 📂 Estructura del Proyecto
 
 ```
-D.J.-Portfolio-Jhasmany-Docker/
-├── 📁 Portfolio-Jhasmany-Frontend/    # Next.js Application
-│   ├── src/                           # Código fuente
-│   ├── public/                        # Archivos estáticos
-│   ├── Dockerfile                     # Docker config
-│   └── package.json                   # Dependencias
+D.J.-Portfolio-Jhasmany/
+├── Portfolio-Jhasmany-Backend/      # API NestJS
+│   ├── src/
+│   │   ├── auth/                    # Autenticación JWT
+│   │   ├── users/                   # Gestión de usuarios
+│   │   ├── projects/                # CRUD de proyectos
+│   │   ├── contact/                 # Formulario de contacto
+│   │   ├── newsletter/              # Sistema de newsletter
+│   │   ├── common/                  # Utilidades compartidas
+│   │   └── migrations/              # Migraciones de BD
+│   ├── .env                         # Variables de entorno
+│   └── package.json
 │
-├── 📁 Portfolio-Jhasmany-Backend/     # Node.js API
-│   ├── index.js                       # Servidor Express
-│   ├── Dockerfile                     # Docker config
-│   └── package.json                   # Dependencias
+├── Portfolio-Jhasmany-Frontend/     # App Next.js
+│   ├── src/
+│   │   ├── app/                     # App Router
+│   │   ├── components/              # Componentes React
+│   │   ├── lib/                     # Utilidades
+│   │   ├── services/                # Servicios API
+│   │   └── schemas/                 # Validaciones Zod
+│   ├── .env.local                   # Variables de entorno
+│   └── package.json
 │
-├── 📁 nginx/                          # Nginx Configuration
-│   ├── nginx.conf                     # Config principal
-│   └── ssl/                           # Certificados SSL
-│       ├── nginx-selfsigned.crt
-│       └── nginx-selfsigned.key
-│
-├── 🐳 docker-compose.yml              # Orquestación Docker
-├── 📜 check-services.sh               # Script verificación
-└── 📖 README.md                       # Esta documentación
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## 🔧 Comandos Útiles
+## 🔧 Configuración
 
-### Gestión de Servicios
+### Variables de Entorno - Backend
 
-```bash
-# Levantar todo
-docker compose up -d
+Archivo: `Portfolio-Jhasmany-Backend/.env`
 
-# Ver estado
-docker compose ps
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=tu_contraseña
+DB_NAME=portfolio_db
 
-# Logs en tiempo real
-docker compose logs -f
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
 
-# Reiniciar todo
-docker compose restart
+# Email (opcional para desarrollo)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=tu_email@gmail.com
+EMAIL_PASS=tu_app_password
 
-# Reiniciar servicio específico
-docker compose restart nginx
-docker compose restart frontend
-docker compose restart backend
-
-# Detener todo
-docker compose down
+# URLs
+FRONTEND_URL=http://localhost:3000
 ```
 
-### Debugging
+### Variables de Entorno - Frontend
 
-```bash
-# Entrar al contenedor nginx
-docker compose exec nginx sh
+Archivo: `Portfolio-Jhasmany-Frontend/.env.local`
 
-# Entrar al contenedor frontend
-docker compose exec frontend sh
-
-# Entrar al contenedor backend
-docker compose exec backend sh
-
-# Ver configuración de nginx
-docker compose exec nginx cat /etc/nginx/nginx.conf
-
-# Verificar logs de nginx
-docker compose logs nginx | tail -50
-
-# Estadísticas en tiempo real
-docker stats
-```
-
-### Verificación de Red
-
-```bash
-# En WSL2
-./check-services.sh
-hostname -I
-ss -tulpn | grep -E ":(8000|8001|8443)"
-curl http://localhost:8000
-curl -k https://localhost:8443
-```
-
-```powershell
-# En PowerShell
-.\diagnostico.ps1
-.\verify-nginx-setup.ps1
-netsh interface portproxy show all
-Get-NetFirewallRule -DisplayName "*Portfolio*"
-```
-
-### Mantenimiento
-
-```bash
-# Limpiar imágenes no utilizadas
-docker image prune
-
-# Limpiar todo el sistema Docker
-docker system prune -a
-
-# Ver espacio usado
-docker system df
-
-# Backup de configuración
-tar -czf portfolio-backup.tar.gz nginx/ docker-compose.yml
-
-# Actualizar imágenes
-docker compose pull
-docker compose up -d
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_TELEMETRY_DISABLED=1
 ```
 
 ---
 
-## 🐛 Solución de Problemas
+## 💻 Desarrollo
 
-### ❌ No accesible desde Internet
+### Iniciar Desarrollo
 
-**Síntomas:** Timeout desde datos móviles
-
-**Verificar:**
-
-```powershell
-# 1. Servicios Docker corriendo
-wsl docker compose ps
-
-# 2. Port forwarding Windows
-netsh interface portproxy show all
-
-# 3. Firewall habilitado
-Get-NetFirewallRule -DisplayName "*Portfolio*"
-
-# 4. Prueba externa
-# https://www.yougetsignal.com/tools/open-ports/
+Terminal 1 - Backend:
+```bash
+cd Portfolio-Jhasmany-Backend
+npm run start:dev
 ```
 
-**Soluciones:**
-1. ISP bloquea puerto 80 → Usar puerto 8888
-2. Router no aplica cambios → Reiniciar router
-3. CGNAT del ISP → Usar Cloudflare Tunnel
+Terminal 2 - Frontend:
+```bash
+cd Portfolio-Jhasmany-Frontend
+npm run dev
+```
 
-### ❌ HTTPS muestra advertencia
+### URLs Locales
 
-**Normal** con certificado autofirmado.
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| Frontend | http://localhost:3000 | Aplicación Next.js |
+| Backend API | http://localhost:3001 | API REST |
+| Swagger Docs | http://localhost:3001/api/docs | Documentación API |
 
-**Opciones:**
-1. Aceptar advertencia: "Avanzado" → "Continuar"
-2. Obtener certificado Let's Encrypt
-3. Usar Cloudflare Tunnel
+---
 
-### ❌ Puerto ya en uso
+## 📜 Scripts Disponibles
+
+### Backend (NestJS)
 
 ```bash
-# Ver qué usa el puerto
-sudo ss -tulpn | grep :8000
+npm run start:dev      # Desarrollo con watch mode
+npm run build          # Compilar TypeScript
+npm run start          # Modo producción
+npm run lint           # Ejecutar ESLint
+npm run test           # Ejecutar tests
+npm run typeorm        # CLI TypeORM
+```
+
+### Frontend (Next.js)
+
+```bash
+npm run dev            # Desarrollo con Turbopack
+npm run build          # Build optimizado
+npm run start          # Servidor producción
+npm run lint           # Ejecutar ESLint
+```
+
+---
+
+## ✨ Características
+
+### Backend
+
+- Autenticación JWT con sistema de login/registro
+- Sistema de reset de contraseñas por email
+- Sistema de newsletter con confirmación
+- Protección contra ataques con rate limiting
+- Sistema de login attempts (3 intentos, bloqueo 15 min)
+- CORS configurado
+- Documentación Swagger automática
+- Validación de datos con class-validator
+- Migraciones automáticas de base de datos
+- Sistema de contacto por email
+- Gestión de proyectos CRUD completo
+
+### Frontend
+
+- Responsive design
+- Dark/Light theme
+- SEO optimizado
+- Performance optimizado
+- Formulario de contacto funcional
+- Animaciones suaves
+- PWA ready
+
+---
+
+## 🗄️ Base de Datos
+
+### Usuario Administrador por Defecto
+
+El sistema se inicializa automáticamente con un usuario administrador:
+
+- **Email:** `jhasmany.fernandez.dev@gmail.com`
+- **Contraseña:** `Dev2307***`
+- **Rol:** `admin`
+
+### Tablas Creadas
+
+- `users` - Usuarios del sistema
+- `projects` - Proyectos del portfolio
+- `contacts` - Mensajes de contacto
+- `newsletter_subscriptions` - Suscripciones al newsletter
+- `password_reset_tokens` - Tokens para reset de contraseñas
+- `login_attempts` - Registro de intentos de login
+
+### Conectar a la Base de Datos
+
+```bash
+# CLI
+psql -U postgres -d portfolio_db
+
+# Herramientas GUI (DBeaver, pgAdmin, DataGrip)
+Host: localhost
+Port: 5432
+Database: portfolio_db
+User: postgres
+Password: tu_contraseña
+```
+
+---
+
+## 🔐 API Endpoints
+
+### Autenticación
+
+```
+POST /api/auth/login              # Iniciar sesión
+POST /api/auth/register           # Registrarse
+POST /api/auth/forgot-password    # Solicitar reset
+POST /api/auth/reset-password     # Restablecer contraseña
+GET  /api/auth/me                 # Obtener perfil
+```
+
+### Proyectos
+
+```
+GET    /api/projects              # Listar proyectos
+POST   /api/projects              # Crear proyecto (auth)
+GET    /api/projects/:id          # Obtener proyecto
+PUT    /api/projects/:id          # Actualizar (auth)
+DELETE /api/projects/:id          # Eliminar (auth)
+```
+
+### Newsletter
+
+```
+POST /api/newsletter/subscribe    # Suscribirse
+GET  /api/newsletter/confirm      # Confirmar suscripción
+POST /api/newsletter/unsubscribe  # Darse de baja
+```
+
+### Contacto
+
+```
+POST /api/contact                 # Enviar mensaje
+```
+
+Ver documentación completa en: `http://localhost:3001/api/docs`
+
+---
+
+## 🐛 Troubleshooting
+
+### Error de conexión a PostgreSQL
+
+```bash
+# Verificar que PostgreSQL esté corriendo
+# Windows:
+services.msc -> PostgreSQL
+
+# Linux/Mac:
+sudo service postgresql status
+
+# Docker:
+docker ps -f name=postgres
+```
+
+### Puerto ya en uso
+
+```bash
+# Windows - ver qué usa el puerto
+netstat -ano | findstr :3000
+netstat -ano | findstr :3001
 
 # Terminar proceso
-sudo kill -9 <PID>
-
-# O cambiar puertos en docker-compose.yml
+taskkill /PID <PID> /F
 ```
 
-### ❌ IP de WSL2 cambia
-
-**Problema:** La IP de WSL2 puede cambiar después de reiniciar.
-
-**Solución:** Re-ejecutar script de port forwarding
-
-```powershell
-.\actualizar-port-forwarding.ps1
-```
-
-### ❌ Docker no inicia
+### Errores de migración
 
 ```bash
-# Verificar Docker
-sudo service docker status
-
-# Iniciar Docker
-sudo service docker start
-
-# Ver logs
-sudo journalctl -u docker -n 50
+cd Portfolio-Jhasmany-Backend
+npm run typeorm migration:revert  # Revertir última
+npm run typeorm migration:run     # Ejecutar todas
 ```
 
 ---
 
 ## 📚 Documentación Adicional
 
-### Scripts de PowerShell (C:\PortfolioSetup)
-
-| Script | Descripción |
-|--------|-------------|
-| `actualizar-port-forwarding.ps1` | Configura port forwarding Windows → WSL2 |
-| `habilitar-https.ps1` | Habilita HTTPS (puerto 443) |
-| `diagnostico.ps1` | Diagnóstico completo de red |
-| `verify-nginx-setup.ps1` | Verifica configuración completa |
-| `test-port-external.ps1` | Prueba puertos desde internet |
-
-### Guías Detalladas (C:\PortfolioSetup)
-
-| Archivo | Contenido |
-|---------|-----------|
-| `NGINX-SETUP.txt` | Configuración completa con Nginx |
-| `HTTPS-CONFIGURADO.txt` | Guía de HTTPS y certificados |
-| `ROUTER-SETUP-GUIA.txt` | Configuración paso a paso del router |
-| `SOLUCION-PROBLEMAS.txt` | Troubleshooting detallado |
-
-### Scripts Bash (WSL2)
-
-| Script | Descripción |
-|--------|-------------|
-| `check-services.sh` | Verifica servicios Docker y red |
-| `~/scripts/server-control.sh` | Gestión de servicios del sistema |
-
----
-
-## 🚀 Despliegue en Producción
-
-### Checklist
-
-- [ ] Cambiar a dominio propio
-- [ ] Configurar Let's Encrypt
-- [ ] Habilitar logs de producción
-- [ ] Configurar monitoreo (Uptime Kuma, etc.)
-- [ ] Habilitar backups automáticos
-- [ ] Configurar rate limiting en Nginx
-- [ ] Implementar CI/CD
-- [ ] Configurar variables de entorno seguras
-
-### Recomendaciones
-
-1. **Dominio**: Registrar dominio propio (~$10/año)
-2. **SSL**: Let's Encrypt o Cloudflare
-3. **CDN**: Cloudflare (gratis)
-4. **Monitoreo**: UptimeRobot o Pingdom
-5. **Backups**: Programar backups diarios
-
----
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crear rama feature (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+- [Backend README](Portfolio-Jhasmany-Backend/README.md) - Documentación detallada del backend
+- [Frontend README](Portfolio-Jhasmany-Frontend/README.md) - Documentación del frontend
+- [Swagger API Docs](http://localhost:3001/api/docs) - Documentación interactiva de la API
 
 ---
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT.
+Este proyecto está bajo la Licencia MIT. Ver archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
 ## 👨‍💻 Autor
 
-**Jhasmany Fernandez**
+**Jhasmany Fernández**
 
-- 🌐 Portfolio: http://181.114.111.21
-- 📧 Email: jhasmany@example.com
-- 💼 LinkedIn: [LinkedIn Profile]
-
----
-
-## 📊 Estado del Servidor
-
-### Servicios Activos
-
-- ✅ Frontend Next.js (Docker)
-- ✅ Backend Node.js (Docker)
-- ✅ Nginx Reverse Proxy (Docker)
-- ✅ HTTPS con SSL
-- ✅ Accesible desde Internet
-
-### Información Técnica
-
-- **Servidor**: WSL2 Debian en Windows
-- **IP Pública**: 181.114.111.21
-- **Última Actualización**: 2025-10-06
-- **Uptime**: Monitorizado 24/7
+- Email: jhasmany.fernandez.dev@gmail.com
+- GitHub: [Tu GitHub]
+- LinkedIn: [Tu LinkedIn]
 
 ---
 
-⭐ ¡Dale una estrella si este proyecto te ayudó!
-
-🔗 **Acceso Público**: http://181.114.111.21
+Desarrollado con ❤️ por Jhasmany Fernández
