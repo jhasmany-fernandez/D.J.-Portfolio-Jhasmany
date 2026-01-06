@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, revalidatePath } from 'next/cache'
 
 const getBackendURL = () => {
   if (typeof window === 'undefined') {
@@ -81,7 +81,9 @@ export async function POST(request: Request) {
     const result = await response.json()
     console.log('Home section created successfully:', result)
 
+    // Revalidate cache to show changes immediately on main page
     revalidateTag('home')
+    revalidatePath('/', 'page')
 
     return NextResponse.json({
       message: 'Home section created successfully',

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidateTag } from 'next/cache'
+import { revalidateTag, revalidatePath } from 'next/cache'
 
 const getBackendURL = () => {
   if (typeof window === 'undefined') {
@@ -64,7 +64,9 @@ export async function PATCH(
     const result = await response.json()
     console.log('[Home API] Success:', result)
 
+    // Revalidate cache to show changes immediately on main page
     revalidateTag('home')
+    revalidatePath('/', 'page')
 
     return NextResponse.json({
       message: 'Home section updated successfully',
@@ -96,7 +98,10 @@ export async function PUT(
     }
 
     const result = await response.json()
+
+    // Revalidate cache to show changes immediately on main page
     revalidateTag('home')
+    revalidatePath('/', 'page')
 
     return NextResponse.json({
       message: 'Home section set as active',
@@ -127,7 +132,9 @@ export async function DELETE(
       return NextResponse.json({ error: error.message || 'Failed to delete home section' }, { status: response.status })
     }
 
+    // Revalidate cache to show changes immediately on main page
     revalidateTag('home')
+    revalidatePath('/', 'page')
 
     return NextResponse.json({ message: 'Home section deleted successfully' })
   } catch (error) {

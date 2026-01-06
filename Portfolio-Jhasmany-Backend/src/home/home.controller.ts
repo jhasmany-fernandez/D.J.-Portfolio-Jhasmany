@@ -22,7 +22,7 @@ export class HomeController {
   @ApiOperation({ summary: 'Create a new home section' })
   @ApiResponse({ status: 201, description: 'Home section created successfully' })
   create(@Body() createHomeDto: CreateHomeDto, @Request() req) {
-    const authorId = req?.user?.userId || '7e98afce-7e6e-47d9-b6fb-bea040874ebd';
+    const authorId = req?.user?.userId || '1b4d78ea-4cad-4daa-9b42-0dd30436b980';
     return this.homeService.create(createHomeDto, authorId);
   }
 
@@ -36,8 +36,12 @@ export class HomeController {
   @Get('active')
   @ApiOperation({ summary: 'Get active home section' })
   @ApiResponse({ status: 200, description: 'Return the active home section' })
-  findActive() {
-    return this.homeService.findActive();
+  async findActive() {
+    const activeSection = await this.homeService.findActive();
+    if (!activeSection) {
+      return { homeSection: null };
+    }
+    return activeSection;
   }
 
   @Get(':id')

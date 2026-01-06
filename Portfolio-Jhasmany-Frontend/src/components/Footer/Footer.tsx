@@ -29,7 +29,12 @@ const Footer = () => {
   useEffect(() => {
     const fetchFooterData = async () => {
       try {
-        const response = await fetch('/api/footer')
+        const response = await fetch('/api/footer', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         if (response.ok) {
           const data = await response.json()
           setFooterData(data)
@@ -39,8 +44,14 @@ const Footer = () => {
       }
     }
 
-    // Fetch only once on mount
+    // Fetch on mount
     fetchFooterData()
+
+    // Set up an interval to refetch footer data every 30 seconds
+    const intervalId = setInterval(fetchFooterData, 30000)
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId)
   }, [])
   return (
     <footer className="bg-secondary relative flex min-h-[560px] flex-col justify-between gap-20 overflow-hidden px-4 py-14 md:p-14">

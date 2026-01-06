@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function PATCH(
   request: NextRequest,
@@ -25,6 +26,11 @@ export async function PATCH(
     }
 
     const data = await response.json();
+
+    // Revalidate the cache to show updated footer on the main page
+    revalidatePath('/', 'layout');
+    revalidateTag('footer');
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Footer update error:', error);

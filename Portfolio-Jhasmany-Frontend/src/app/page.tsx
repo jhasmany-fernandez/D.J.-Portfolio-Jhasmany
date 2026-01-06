@@ -19,7 +19,22 @@ async function getActiveHomeSection() {
       return null
     }
 
-    return await response.json()
+    const text = await response.text()
+    if (!text) {
+      return null
+    }
+
+    try {
+      const data = JSON.parse(text)
+      // If backend returns {homeSection: null}, return null
+      if (data && data.homeSection === null) {
+        return null
+      }
+      return data
+    } catch (parseError) {
+      console.error('Error parsing home section JSON:', parseError)
+      return null
+    }
   } catch (error) {
     console.error('Error fetching active home section:', error)
     return null
