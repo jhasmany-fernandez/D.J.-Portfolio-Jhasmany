@@ -6,12 +6,14 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
+    private readonly uploadService: UploadService,
   ) {}
 
   async create(createProjectDto: CreateProjectDto, authorId: string): Promise<Project> {
@@ -78,6 +80,11 @@ export class ProjectsService {
    */
   private async deleteImageFile(imageUrl: string): Promise<void> {
     try {
+      const deletedFromDatabase = await this.uploadService.deleteImageFromUrl(imageUrl);
+      if (deletedFromDatabase) {
+        return;
+      }
+
       // Extract filename from URL
       // URLs can be: /api/images/filename.jpg or /uploads/filename.jpg or full URL
       const filename = imageUrl.split('/').pop();
@@ -89,10 +96,8 @@ export class ProjectsService {
       try {
         await fs.access(filePath);
         await fs.unlink(filePath);
-        console.log(`Deleted old image: ${filename}`);
       } catch (error) {
         // File doesn't exist or can't be accessed, ignore
-        console.log(`Image file not found or already deleted: ${filename}`);
       }
     } catch (error) {
       console.error('Error deleting image file:', error);

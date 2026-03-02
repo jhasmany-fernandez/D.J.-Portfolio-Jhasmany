@@ -15,6 +15,21 @@ interface Testimonial {
   updatedAt: string
 }
 
+interface StoredImage {
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  createdAt: string
+  url: string
+}
+
+const FALLBACK_AVATAR =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23d1d5db'/%3E%3Ccircle cx='32' cy='24' r='10' fill='%239ca3af'/%3E%3Cpath d='M14 54c2-10 10-16 18-16s16 6 18 16' fill='%239ca3af'/%3E%3C/svg%3E"
+
+const isValidStoredImageUrl = (url: string) =>
+  /^\/api\/images\/[0-9a-fA-F-]{36}$/.test(url) || /^https?:\/\//.test(url)
+
 export default function TestimonialsPage() {
   const toast = useToast()
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
@@ -34,6 +49,10 @@ export default function TestimonialsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [showSavedImagesModal, setShowSavedImagesModal] = useState(false)
+  const [storedImages, setStoredImages] = useState<StoredImage[]>([])
+  const [loadingStoredImages, setLoadingStoredImages] = useState(false)
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
 
   // Section data state
   const [sectionData, setSectionData] = useState<{ id: string; subtitle: string } | null>(null)
@@ -50,7 +69,11 @@ export default function TestimonialsPage() {
       const response = await fetch('/api/testimonials')
       if (response.ok) {
         const data = await response.json()
-        setTestimonials(data)
+        const normalized = (Array.isArray(data) ? data : []).map((item: Testimonial) => ({
+          ...item,
+          image: isValidStoredImageUrl(item.image) ? item.image : FALLBACK_AVATAR,
+        }))
+        setTestimonials(normalized)
       } else {
         toast.error('Error al cargar testimonials')
       }
@@ -145,6 +168,70 @@ export default function TestimonialsPage() {
       return null
     } finally {
       setUploadingImage(false)
+    }
+  }
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const fetchStoredImages = async () => {
+    setLoadingStoredImages(true)
+    try {
+      const response = await fetch('/api/upload/image', { cache: 'no-store' })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setStoredImages(data.images || [])
+    } catch (error) {
+      console.error('Error fetching stored images:', error)
+      toast.error('Error loading saved images')
+    } finally {
+      setLoadingStoredImages(false)
+    }
+  }
+
+  const openSavedImagesModal = async () => {
+    setShowSavedImagesModal(true)
+    await fetchStoredImages()
+  }
+
+  const selectStoredImage = (url: string) => {
+    setSelectedFile(null)
+    setPreviewUrl(url)
+    setImage(url)
+    setShowSavedImagesModal(false)
+  }
+
+  const deleteStoredImage = async (storedImage: StoredImage) => {
+    if (!confirm(`Delete image "${storedImage.originalName}"?`)) return
+
+    setDeletingImageId(storedImage.id)
+    try {
+      const response = await fetch(`/api/upload/image/${storedImage.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      setStoredImages((prev) => prev.filter((item) => item.id !== storedImage.id))
+      if (image === storedImage.url) {
+        setImage('')
+      }
+      if (previewUrl === storedImage.url) {
+        setPreviewUrl(null)
+      }
+      toast.success('Image deleted successfully')
+    } catch (error) {
+      console.error('Error deleting stored image:', error)
+      toast.error('Error deleting image')
+    } finally {
+      setDeletingImageId(null)
     }
   }
 
@@ -465,6 +552,13 @@ export default function TestimonialsPage() {
                   onChange={handleFileSelect}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-primary-content focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-black hover:file:bg-accent/80"
                 />
+                <button
+                  type="button"
+                  onClick={openSavedImagesModal}
+                  className="mt-3 bg-primary border border-border hover:bg-accent hover:text-black text-primary-content px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Seleccionar imagenes guardadas
+                </button>
                 {(previewUrl || (editingId && image)) && (
                   <div className="mt-3">
                     <img
@@ -571,7 +665,7 @@ export default function TestimonialsPage() {
                     alt={testimonial.name}
                     className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64'
+                      (e.target as HTMLImageElement).src = FALLBACK_AVATAR
                     }}
                   />
                   <div className="flex-1 min-w-0">
@@ -713,6 +807,78 @@ export default function TestimonialsPage() {
           </div>
         </div>
       </div>
+
+      {showSavedImagesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-secondary border border-border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-primary-content">Imagenes guardadas</h3>
+              <button
+                type="button"
+                onClick={() => setShowSavedImagesModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition-colors duration-200"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={fetchStoredImages}
+                className="bg-accent hover:bg-accent/80 text-black px-4 py-2 rounded-lg transition-colors duration-200"
+                disabled={loadingStoredImages}
+              >
+                {loadingStoredImages ? 'Cargando...' : 'Actualizar lista'}
+              </button>
+            </div>
+
+            {loadingStoredImages ? (
+              <div className="text-tertiary-content">Loading images...</div>
+            ) : storedImages.length === 0 ? (
+              <div className="text-tertiary-content">No saved images found.</div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {storedImages.map((storedImage) => (
+                  <div key={storedImage.id} className="bg-primary border border-border rounded-lg p-3">
+                    <img
+                      src={storedImage.url}
+                      alt={storedImage.originalName}
+                      className="w-full h-36 object-cover rounded-lg border border-border mb-3"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                      }}
+                    />
+                    <div className="text-xs text-tertiary-content mb-1 truncate" title={storedImage.originalName}>
+                      {storedImage.originalName}
+                    </div>
+                    <div className="text-xs text-tertiary-content mb-3">
+                      {formatBytes(storedImage.size)}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => selectStoredImage(storedImage.url)}
+                        className="flex-1 bg-accent hover:bg-accent/80 text-black px-3 py-2 rounded text-sm transition-colors duration-200"
+                      >
+                        Seleccionar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteStoredImage(storedImage)}
+                        disabled={deletingImageId === storedImage.id}
+                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-2 rounded text-sm transition-colors duration-200"
+                      >
+                        {deletingImageId === storedImage.id ? 'Eliminando...' : 'Eliminar'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <toast.ToastContainer />
     </div>

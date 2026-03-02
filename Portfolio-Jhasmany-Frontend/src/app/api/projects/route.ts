@@ -18,7 +18,6 @@ const getBackendURL = () => {
 export async function GET() {
   try {
     const backendURL = getBackendURL()
-    console.log('Fetching projects from backend API:', `${backendURL}/api/projects`)
 
     const response = await fetch(`${backendURL}/api/projects`, {
       cache: 'no-store', // Disable caching for real-time data
@@ -31,7 +30,6 @@ export async function GET() {
     }
 
     const projects = await response.json()
-    console.log('Projects received from backend:', Array.isArray(projects) ? projects.length : 'not an array')
 
     // Sort by priority
     if (Array.isArray(projects)) {
@@ -55,7 +53,6 @@ export async function POST(request: Request) {
     const project: Project = body
     const backendURL = getBackendURL()
 
-    console.log('Creating project on backend:', project.title)
 
     // TODO: Add authentication token from session
     const response = await fetch(`${backendURL}/api/projects`, {
@@ -75,7 +72,6 @@ export async function POST(request: Request) {
     }
 
     const result = await response.json()
-    console.log('Project created successfully:', result)
 
     // Invalidate the projects cache to show new project immediately
     revalidateTag('projects')

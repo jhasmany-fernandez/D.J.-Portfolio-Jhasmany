@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usersService, type User } from '@/services/users'
 import UserModal, { type UserFormData } from '@/components/Dashboard/UserModal'
+import { authService } from '@/services/auth'
 
 export default function UsersPage() {
   const router = useRouter()
@@ -14,13 +15,15 @@ export default function UsersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    // Check if user has auth token
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-    if (!token) {
-      router.push('/auth/login')
-      return
+    const checkSession = async () => {
+      const currentUser = await authService.getCurrentUser()
+      if (!currentUser) {
+        router.push('/auth/login')
+        return
+      }
+      loadUsers()
     }
-    loadUsers()
+    checkSession()
   }, [router])
 
   const loadUsers = async () => {

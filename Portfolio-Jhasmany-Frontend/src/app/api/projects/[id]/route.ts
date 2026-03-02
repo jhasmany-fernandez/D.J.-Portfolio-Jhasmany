@@ -17,7 +17,6 @@ export async function GET(
   try {
     const { id } = await params
     const backendURL = getBackendURL()
-    console.log('Fetching project by ID:', id)
 
     const response = await fetch(`${backendURL}/api/projects/${id}`, {
       cache: 'no-store',
@@ -49,7 +48,6 @@ export async function PUT(
     const body = await request.json()
     const backendURL = getBackendURL()
 
-    console.log('Updating project:', id)
 
     // TODO: Add authentication token from session
     const response = await fetch(`${backendURL}/api/projects/${id}`, {
@@ -69,7 +67,6 @@ export async function PUT(
     }
 
     const result = await response.json()
-    console.log('Project updated successfully:', result)
 
     // Invalidate the projects cache to show updates immediately
     revalidateTag('projects')
@@ -90,7 +87,6 @@ export async function DELETE(
   try {
     const { id } = await params
     const backendURL = getBackendURL()
-    console.log('Deleting project:', id)
 
     // TODO: Add authentication token from session
     const response = await fetch(`${backendURL}/api/projects/${id}`, {

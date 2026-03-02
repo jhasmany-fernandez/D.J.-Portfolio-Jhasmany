@@ -1,0 +1,88 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: portfolio_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: portfolio_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Postgres2307***
+    ports:
+      - "5432:5432"
+    volumes:
+      - portfolio_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d portfolio_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  backend:
+    build:
+      context: ./Portfolio-Jhasmany-Backend
+      dockerfile: Dockerfile
+    container_name: portfolio_backend
+    restart: unless-stopped
+    command: npm run start:dev
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: Postgres2307***
+      DB_NAME: portfolio_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USER: your_email@gmail.com
+      EMAIL_PASS: your_gmail_app_password
+      EMAIL_FROM: your_email@gmail.com
+      EMAIL_FROM_NAME: Portfolio
+      FRONTEND_URL: http://localhost
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./Portfolio-Jhasmany-Backend:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3001/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./Portfolio-Jhasmany-Frontend
+      dockerfile: Dockerfile
+    container_name: portfolio_frontend
+    restart: unless-stopped
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      API_URL: http://backend:3001
+      NEXT_PUBLIC_API_URL: http://192.168.0.50:3001
+      NEXT_PUBLIC_SITE_URL: http://192.168.0.50
+      NEXT_TELEMETRY_DISABLED: 1
+    ports:
+      - "80:3000"
+    volumes:
+      - ./Portfolio-Jhasmany-Frontend:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  portfolio_db_data:

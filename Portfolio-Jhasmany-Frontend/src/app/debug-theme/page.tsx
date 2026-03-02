@@ -7,7 +7,10 @@ export default function DebugThemePage() {
   const [cssVars, setCssVars] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') ?? 'dark'
+    const savedTheme = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('theme='))
+      ?.split('=')[1] ?? 'dark'
     setTheme(savedTheme)
 
     const updateCSSVars = () => {

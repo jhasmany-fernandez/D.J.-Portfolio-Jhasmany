@@ -1,11 +1,28 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
-const getBackendURL = () => {
-  if (typeof window === 'undefined') {
-    return process.env.API_URL || 'http://backend:3001'
+const getBackendCandidates = () => {
+  const normalizeHost = (url?: string) => url?.replace('://localhost', '://127.0.0.1')
+  const fromEnv = normalizeHost(process.env.API_URL)
+  const publicEnv = normalizeHost(process.env.NEXT_PUBLIC_API_URL)
+  const urls = ['http://127.0.0.1:3001', fromEnv, publicEnv, 'http://localhost:3001', 'http://backend:3001']
+  return Array.from(new Set(urls.filter(Boolean))) as string[]
+}
+
+const fetchBackend = async (path: string, init?: RequestInit) => {
+  const candidates = getBackendCandidates()
+  let lastError: unknown
+
+  for (const baseUrl of candidates) {
+    try {
+      return await fetch(`${baseUrl}${path}`, init)
+    } catch (error) {
+      lastError = error
+      console.error(`Backend request failed for ${baseUrl}${path}`, error)
+    }
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+  throw lastError instanceof Error ? lastError : new Error('No backend URL reachable')
 }
 
 // GET single service
@@ -14,9 +31,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const backendURL = getBackendURL()
     const { id } = await params
-    const response = await fetch(`${backendURL}/api/services/${id}`, {
+    const response = await fetchBackend(`/api/services/${id}`, {
       cache: 'no-store',
     })
 
@@ -41,10 +57,9 @@ export async function PATCH(
 ) {
   try {
     const body = await request.json()
-    const backendURL = getBackendURL()
     const { id } = await params
 
-    const response = await fetch(`${backendURL}/api/services/${id}`, {
+    const response = await fetchBackend(`/api/services/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -77,10 +92,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const backendURL = getBackendURL()
     const { id } = await params
 
-    const response = await fetch(`${backendURL}/api/services/${id}`, {
+    const response = await fetchBackend(`/api/services/${id}`, {
       method: 'DELETE',
     })
 

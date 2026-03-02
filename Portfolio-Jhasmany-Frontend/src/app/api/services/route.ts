@@ -1,21 +1,34 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
-// Use Docker service name for internal communication (SSR)
-const getBackendURL = () => {
-  if (typeof window === 'undefined') {
-    return process.env.API_URL || 'http://backend:3001'
+const getBackendCandidates = () => {
+  const normalizeHost = (url?: string) => url?.replace('://localhost', '://127.0.0.1')
+  const fromEnv = normalizeHost(process.env.API_URL)
+  const publicEnv = normalizeHost(process.env.NEXT_PUBLIC_API_URL)
+  const urls = ['http://127.0.0.1:3001', fromEnv, publicEnv, 'http://localhost:3001', 'http://backend:3001']
+  return Array.from(new Set(urls.filter(Boolean))) as string[]
+}
+
+const fetchBackend = async (path: string, init?: RequestInit) => {
+  const candidates = getBackendCandidates()
+  let lastError: unknown
+
+  for (const baseUrl of candidates) {
+    try {
+      return await fetch(`${baseUrl}${path}`, init)
+    } catch (error) {
+      lastError = error
+      console.error(`Backend request failed for ${baseUrl}${path}`, error)
+    }
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+  throw lastError instanceof Error ? lastError : new Error('No backend URL reachable')
 }
 
 // GET all services
 export async function GET() {
   try {
-    const backendURL = getBackendURL()
-    console.log('Fetching services from backend API:', `${backendURL}/api/services`)
-
-    const response = await fetch(`${backendURL}/api/services`, {
+    const response = await fetchBackend('/api/services', {
       cache: 'no-store',
     })
 
@@ -26,7 +39,6 @@ export async function GET() {
     }
 
     const services = await response.json()
-    console.log('Services received from backend:', Array.isArray(services) ? services.length : 'not an array')
 
     // Sort by order
     if (Array.isArray(services)) {
@@ -46,11 +58,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const backendURL = getBackendURL()
 
-    console.log('Creating service on backend:', body.title)
 
-    const response = await fetch(`${backendURL}/api/services`, {
+    const response = await fetchBackend('/api/services', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,13 +69,24 @@ export async function POST(request: Request) {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      console.error('Backend error:', error)
-      return NextResponse.json({ error: error.message || 'Failed to create service' }, { status: response.status })
+      const errorText = await response.text()
+      let errorMessage = 'Failed to create service'
+      try {
+        const parsed = JSON.parse(errorText)
+        errorMessage = parsed?.message || parsed?.error || errorMessage
+      } catch {
+        if (errorText) {
+          errorMessage = errorText
+        }
+      }
+      console.error('Backend error:', { status: response.status, url: response.url, errorText })
+      return NextResponse.json(
+        { error: errorMessage, backendUrl: response.url, status: response.status },
+        { status: response.status }
+      )
     }
 
     const result = await response.json()
-    console.log('Service created successfully:', result)
 
     revalidateTag('services')
 

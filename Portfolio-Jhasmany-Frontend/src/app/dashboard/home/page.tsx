@@ -9,10 +9,25 @@ interface HomeSection {
   roles: string[]
   description: string
   imageUrl?: string
+  primaryButtonText?: string
+  primaryButtonUrl?: string
+  secondaryButtonText?: string
+  secondaryButtonUrl?: string
   isActive: boolean
   createdAt?: string
   updatedAt?: string
 }
+
+interface StoredImage {
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  createdAt: string
+  url: string
+}
+
+type ImageSection = 'Home' | 'Projects' | 'Skills' | 'Services' | 'Sin seccion'
 
 export default function HomePage() {
   const toast = useToast()
@@ -26,12 +41,21 @@ export default function HomePage() {
     roles: [''],
     description: '',
     imageUrl: '',
+    primaryButtonText: 'Acceso Personal',
+    primaryButtonUrl: '/auth/login',
+    secondaryButtonText: 'Newsletter Clientes',
+    secondaryButtonUrl: '/newsletter/subscribe',
     isActive: false
   })
   const [saving, setSaving] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showSavedImagesModal, setShowSavedImagesModal] = useState(false)
+  const [storedImages, setStoredImages] = useState<StoredImage[]>([])
+  const [loadingStoredImages, setLoadingStoredImages] = useState(false)
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
+  const [imageUsageById, setImageUsageById] = useState<Record<string, ImageSection[]>>({})
 
   // Fetch home sections
   const fetchHomeSections = async () => {
@@ -55,6 +79,161 @@ export default function HomePage() {
   useEffect(() => {
     fetchHomeSections()
   }, [])
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const sectionOrder: ImageSection[] = ['Home', 'Projects', 'Skills', 'Services', 'Sin seccion']
+
+  const extractImageIdFromUrl = (url?: string | null) => {
+    if (!url) return null
+    const match = url.match(/\/api\/images\/([0-9a-fA-F-]{36})/)
+    return match ? match[1] : null
+  }
+
+  const addUsage = (
+    map: Record<string, ImageSection[]>,
+    imageId: string | null,
+    section: Exclude<ImageSection, 'Sin seccion'>
+  ) => {
+    if (!imageId) return
+    if (!map[imageId]) {
+      map[imageId] = [section]
+      return
+    }
+    if (!map[imageId].includes(section)) {
+      map[imageId].push(section)
+    }
+  }
+
+  const fetchImageUsageBySection = async (): Promise<Record<string, ImageSection[]>> => {
+    const usageMap: Record<string, ImageSection[]> = {}
+
+    const [homeRes, projectsRes, skillsRes, servicesRes] = await Promise.all([
+      fetch('/api/home', { cache: 'no-store' }),
+      fetch('/api/projects', { cache: 'no-store' }),
+      fetch('/api/skills', { cache: 'no-store' }),
+      fetch('/api/services', { cache: 'no-store' }),
+    ])
+
+    if (homeRes.ok) {
+      const homeData = await homeRes.json()
+      for (const section of homeData.homeSections || []) {
+        addUsage(usageMap, extractImageIdFromUrl(section.imageUrl), 'Home')
+      }
+    }
+
+    if (projectsRes.ok) {
+      const projectsData = await projectsRes.json()
+      for (const project of projectsData.projects || []) {
+        addUsage(usageMap, extractImageIdFromUrl(project.imageUrl), 'Projects')
+        addUsage(usageMap, extractImageIdFromUrl(project.cover), 'Projects')
+      }
+    }
+
+    if (skillsRes.ok) {
+      const skillsData = await skillsRes.json()
+      for (const skill of skillsData.skills || []) {
+        addUsage(usageMap, extractImageIdFromUrl(skill.imageUrl), 'Skills')
+        addUsage(usageMap, extractImageIdFromUrl(skill.icon), 'Skills')
+      }
+    }
+
+    if (servicesRes.ok) {
+      const servicesData = await servicesRes.json()
+      for (const service of servicesData.services || []) {
+        addUsage(usageMap, extractImageIdFromUrl(service.imageUrl), 'Services')
+        addUsage(usageMap, extractImageIdFromUrl(service.icon), 'Services')
+      }
+    }
+
+    return usageMap
+  }
+
+  const fetchStoredImages = async () => {
+    setLoadingStoredImages(true)
+    try {
+      const [imagesResponse, usageMap] = await Promise.all([
+        fetch('/api/upload/image', { cache: 'no-store' }),
+        fetchImageUsageBySection(),
+      ])
+
+      if (!imagesResponse.ok) {
+        throw new Error(`HTTP error! status: ${imagesResponse.status}`)
+      }
+
+      const data = await imagesResponse.json()
+      setStoredImages(data.images || [])
+      setImageUsageById(usageMap)
+    } catch (error) {
+      console.error('Error fetching stored images:', error)
+      toast.error('Error loading saved images')
+    } finally {
+      setLoadingStoredImages(false)
+    }
+  }
+
+  const openSavedImagesModal = async () => {
+    setShowSavedImagesModal(true)
+    await fetchStoredImages()
+  }
+
+  const selectStoredImage = (url: string) => {
+    setSelectedFile(null)
+    setPreviewUrl(url)
+
+    if (editingSection && editForm) {
+      setEditForm({ ...editForm, imageUrl: url })
+    } else {
+      setCreateForm({ ...createForm, imageUrl: url })
+    }
+
+    setShowSavedImagesModal(false)
+  }
+
+  const deleteStoredImage = async (image: StoredImage) => {
+    if (!confirm(`Delete image "${image.originalName}"?`)) return
+
+    setDeletingImageId(image.id)
+    try {
+      const response = await fetch(`/api/upload/image/${image.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      setStoredImages((prev) => prev.filter((item) => item.id !== image.id))
+      setImageUsageById((prev) => {
+        const next = { ...prev }
+        delete next[image.id]
+        return next
+      })
+
+      if (previewUrl === image.url) {
+        setPreviewUrl(null)
+      }
+
+      if (editForm?.imageUrl === image.url) {
+        setEditForm({ ...editForm, imageUrl: '' })
+      }
+
+      if (createForm.imageUrl === image.url) {
+        setCreateForm({ ...createForm, imageUrl: '' })
+      }
+
+      toast.success('Image deleted successfully')
+    } catch (error) {
+      console.error('Error deleting stored image:', error)
+      toast.error('Error deleting image')
+    } finally {
+      setDeletingImageId(null)
+    }
+  }
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,6 +337,10 @@ export default function HomePage() {
       roles: [''],
       description: '',
       imageUrl: '',
+      primaryButtonText: 'Acceso Personal',
+      primaryButtonUrl: '/auth/login',
+      secondaryButtonText: 'Newsletter Clientes',
+      secondaryButtonUrl: '/newsletter/subscribe',
       isActive: false
     })
     setSelectedFile(null)
@@ -341,35 +524,43 @@ export default function HomePage() {
     )
   }
 
+  const currentSection = homeSections.find((section) => section.isActive) ?? homeSections[0]
+  const getPrimarySection = (imageId: string): ImageSection => {
+    const usage = imageUsageById[imageId] || []
+    for (const section of sectionOrder) {
+      if (section !== 'Sin seccion' && usage.includes(section)) {
+        return section
+      }
+    }
+    return 'Sin seccion'
+  }
+
+  const groupedStoredImages = sectionOrder
+    .map((section) => ({
+      section,
+      images: storedImages.filter((image) => getPrimarySection(image.id) === section),
+    }))
+    .filter((group) => group.images.length > 0)
+
   return (
     <div className="p-6 max-w-7xl">
       <toast.ToastContainer />
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-neutral mb-2">Home Sections</h1>
-        <p className="text-tertiary-content">Manage your hero section content. Only one section can be active at a time.</p>
+        <h1 className="text-2xl font-bold text-neutral mb-2">Home Section</h1>
+        <p className="text-tertiary-content">Edit the current hero content shown on your home page.</p>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4 mb-6">
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-accent hover:bg-accent/80 text-secondary px-4 py-2 rounded-lg transition-colors duration-200"
-        >
-          + New Home Section
-        </button>
-      </div>
-
-      {/* Home Sections Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {homeSections.map((section) => (
-          <div key={section.id} className="bg-secondary border-border rounded-lg border p-6 hover:shadow-lg transition-shadow duration-200 flex flex-col">
+      {/* Current Home Section */}
+      {currentSection && (
+        <div className="max-w-3xl">
+          <div className="bg-secondary border-border rounded-lg border p-6 hover:shadow-lg transition-shadow duration-200 flex flex-col">
             {/* Image */}
-            {section.imageUrl && (
+            {currentSection.imageUrl && (
               <div className="mb-4">
                 <img
-                  src={section.imageUrl}
+                  src={currentSection.imageUrl}
                   alt="Hero"
                   className="w-full h-32 object-cover rounded-lg border border-border"
                   onError={(e) => {
@@ -380,15 +571,15 @@ export default function HomePage() {
             )}
 
             {/* Greeting */}
-            <h3 className="text-lg font-semibold text-neutral mb-2 truncate" title={section.greeting}>
-              {section.greeting}
+            <h3 className="text-lg font-semibold text-neutral mb-2 truncate" title={currentSection.greeting}>
+              {currentSection.greeting}
             </h3>
 
             {/* Roles */}
             <div className="mb-3">
               <span className="text-tertiary-content text-xs">Roles:</span>
               <div className="flex flex-wrap gap-1 mt-1">
-                {section.roles.map((role, idx) => (
+                {currentSection.roles.map((role, idx) => (
                   <span key={idx} className="bg-primary border border-border px-2 py-1 rounded text-xs text-neutral">
                     {role}
                   </span>
@@ -397,85 +588,66 @@ export default function HomePage() {
             </div>
 
             {/* Description */}
-            <p className="text-tertiary-content text-sm mb-4 line-clamp-2" title={section.description}>
-              {section.description}
+            <p className="text-tertiary-content text-sm mb-4 line-clamp-2" title={currentSection.description}>
+              {currentSection.description}
             </p>
+
+            <div className="mb-4 space-y-1">
+              <div className="text-xs text-tertiary-content">
+                Boton primario: <span className="text-neutral">{currentSection.primaryButtonText || 'Acceso Personal'}</span>
+              </div>
+              <div className="text-xs text-tertiary-content">
+                URL primaria: <span className="text-neutral">{currentSection.primaryButtonUrl || '/auth/login'}</span>
+              </div>
+              <div className="text-xs text-tertiary-content">
+                Boton secundario: <span className="text-neutral">{currentSection.secondaryButtonText || 'Newsletter Clientes'}</span>
+              </div>
+              <div className="text-xs text-tertiary-content">
+                URL secundaria: <span className="text-neutral">{currentSection.secondaryButtonUrl || '/newsletter/subscribe'}</span>
+              </div>
+            </div>
 
             {/* Status Badge */}
             <div className="mb-4">
-              {section.isActive ? (
+              {currentSection.isActive ? (
                 <span className="bg-green-500/20 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
-                  ✓ Active
+                  Active section
                 </span>
               ) : (
-                <button
-                  onClick={() => setActive(section.id)}
-                  className="bg-gray-500/20 text-gray-700 hover:bg-gray-500/30 px-3 py-1 rounded-full text-xs font-medium transition-colors duration-200"
-                >
-                  Set as Active
-                </button>
+                <span className="bg-gray-500/20 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
+                  Inactive section
+                </span>
               )}
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 mt-auto">
+            <div className="flex gap-2 mt-auto max-w-xs">
               <button
-                onClick={() => startEditing(section)}
+                onClick={() => startEditing(currentSection)}
                 className="flex-1 bg-accent hover:bg-accent/80 text-secondary px-3 py-2 rounded text-sm transition-colors duration-200 font-medium"
               >
                 Edit
               </button>
-              <button
-                onClick={() => deleteSection(section.id)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors duration-200 font-medium"
-                disabled={section.isActive}
-                title={section.isActive ? 'Cannot delete active section' : 'Delete section'}
-              >
-                Delete
-              </button>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
       {homeSections.length === 0 && (
         <div className="bg-secondary border-border rounded-lg border p-12 text-center">
           <div className="text-6xl mb-4">🏠</div>
-          <h3 className="text-xl font-semibold text-neutral mb-2">No home sections yet</h3>
+          <h3 className="text-xl font-semibold text-neutral mb-2">No home section yet</h3>
           <p className="text-tertiary-content mb-6">
-            Start by creating your first home section for your portfolio hero area.
+            Create your initial home section for the hero area.
           </p>
           <button
             onClick={() => setShowCreateForm(true)}
             className="bg-accent hover:bg-accent/80 text-secondary px-6 py-2 rounded-lg transition-colors duration-200"
           >
-            Create First Section
+            Create Initial Section
           </button>
         </div>
       )}
-
-      {/* Stats */}
-      <div className="bg-secondary border-border rounded-lg border p-6 mt-6">
-        <h3 className="text-xl font-semibold text-neutral mb-4">Statistics</h3>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-accent">{homeSections.length}</div>
-            <div className="text-sm text-tertiary-content">Total Sections</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-accent">
-              {homeSections.filter(s => s.isActive).length}
-            </div>
-            <div className="text-sm text-tertiary-content">Active</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-accent">
-              {homeSections.filter(s => !s.isActive).length}
-            </div>
-            <div className="text-sm text-tertiary-content">Inactive</div>
-          </div>
-        </div>
-      </div>
 
       {/* Create Home Section Form */}
       {showCreateForm && (
@@ -548,11 +720,74 @@ export default function HomePage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Texto Boton Primario *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.primaryButtonText ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, primaryButtonText: e.target.value })}
+                  placeholder="Acceso Personal"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  URL Boton Primario *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.primaryButtonUrl ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, primaryButtonUrl: e.target.value })}
+                  placeholder="/auth/login"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Texto Boton Secundario *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.secondaryButtonText ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, secondaryButtonText: e.target.value })}
+                  placeholder="Newsletter Clientes"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  URL Boton Secundario *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.secondaryButtonUrl ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, secondaryButtonUrl: e.target.value })}
+                  placeholder="/newsletter/subscribe"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                />
+              </div>
+
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-neutral mb-2">
                   Hero Image (optional)
                 </label>
+                <button
+                  type="button"
+                  onClick={openSavedImagesModal}
+                  className="mb-3 bg-primary hover:bg-primary/80 text-primary-content border border-border px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Seleccionar imagenes guardadas
+                </button>
                 <input
                   type="file"
                   accept="image/*"
@@ -688,11 +923,74 @@ export default function HomePage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Texto Boton Primario *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.primaryButtonText ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, primaryButtonText: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Acceso Personal"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  URL Boton Primario *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.primaryButtonUrl ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, primaryButtonUrl: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="/auth/login"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Texto Boton Secundario *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.secondaryButtonText ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, secondaryButtonText: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Newsletter Clientes"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  URL Boton Secundario *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.secondaryButtonUrl ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, secondaryButtonUrl: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="/newsletter/subscribe"
+                  required
+                />
+              </div>
+
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-neutral mb-2">
                   Hero Image
                 </label>
+                <button
+                  type="button"
+                  onClick={openSavedImagesModal}
+                  className="mb-3 bg-primary hover:bg-primary/80 text-primary-content border border-border px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Seleccionar imagenes guardadas
+                </button>
                 <input
                   type="file"
                   accept="image/*"
@@ -729,6 +1027,100 @@ export default function HomePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSavedImagesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-secondary border border-border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-neutral">Imagenes guardadas</h3>
+              <button
+                type="button"
+                onClick={() => setShowSavedImagesModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition-colors duration-200"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={fetchStoredImages}
+                className="bg-accent hover:bg-accent/80 text-secondary px-4 py-2 rounded-lg transition-colors duration-200"
+                disabled={loadingStoredImages}
+              >
+                {loadingStoredImages ? 'Cargando...' : 'Actualizar lista'}
+              </button>
+            </div>
+
+            {loadingStoredImages ? (
+              <div className="text-tertiary-content">Loading images...</div>
+            ) : storedImages.length === 0 ? (
+              <div className="text-tertiary-content">No saved images found.</div>
+            ) : (
+              <div className="space-y-6">
+                {groupedStoredImages.map((group) => (
+                  <div key={group.section}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="text-lg font-semibold text-neutral">{group.section}</h4>
+                      <span className="text-xs text-tertiary-content">{group.images.length} imagen(es)</span>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {group.images.map((image) => {
+                        const extraSections = (imageUsageById[image.id] || []).filter(
+                          (section) => section !== group.section
+                        )
+
+                        return (
+                          <div key={image.id} className="bg-primary border border-border rounded-lg p-3">
+                            <img
+                              src={image.url}
+                              alt={image.originalName}
+                              className="w-full h-36 object-cover rounded-lg border border-border mb-3"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                            <div className="text-xs text-tertiary-content mb-1 truncate" title={image.originalName}>
+                              {image.originalName}
+                            </div>
+                            <div className="text-xs text-tertiary-content mb-1">
+                              {formatBytes(image.size)}
+                            </div>
+                            {extraSections.length > 0 && (
+                              <div className="text-xs text-tertiary-content mb-3">
+                                Tambien en: {extraSections.join(', ')}
+                              </div>
+                            )}
+                            {extraSections.length === 0 && <div className="mb-3" />}
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => selectStoredImage(image.url)}
+                                className="flex-1 bg-accent hover:bg-accent/80 text-secondary px-3 py-2 rounded text-sm transition-colors duration-200"
+                              >
+                                Seleccionar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteStoredImage(image)}
+                                disabled={deletingImageId === image.id}
+                                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-2 rounded text-sm transition-colors duration-200"
+                              >
+                                {deletingImageId === image.id ? 'Eliminando...' : 'Eliminar'}
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

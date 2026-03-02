@@ -58,7 +58,6 @@ export function isInViewport(element: HTMLElement, callback: () => void, thresho
       const [entry] = entries
 
       if (entry.isIntersecting) {
-        console.log('Element has entered the viewport')
         callback()
       }
     },

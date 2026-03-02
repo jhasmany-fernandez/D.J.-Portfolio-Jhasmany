@@ -34,6 +34,40 @@ export class UpdateFooterDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @IsString()
+  githubUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  linkedinUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  codepenUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  twitterUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  instagramUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  facebookUrl?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  availableLanguages?: string[];
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }

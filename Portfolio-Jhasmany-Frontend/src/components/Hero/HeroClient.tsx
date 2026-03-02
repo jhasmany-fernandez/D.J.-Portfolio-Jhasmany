@@ -8,6 +8,10 @@ interface HomeSection {
   roles?: string[]
   description?: string
   imageUrl?: string
+  primaryButtonText?: string
+  primaryButtonUrl?: string
+  secondaryButtonText?: string
+  secondaryButtonUrl?: string
 }
 
 interface HeroClientProps {
@@ -31,7 +35,11 @@ export default function HeroClient({ initialHomeSection }: HeroClientProps) {
               greeting: activeSection.greeting,
               roles: activeSection.roles,
               description: activeSection.description,
-              imageUrl: activeSection.imageUrl
+              imageUrl: activeSection.imageUrl,
+              primaryButtonText: activeSection.primaryButtonText,
+              primaryButtonUrl: activeSection.primaryButtonUrl,
+              secondaryButtonText: activeSection.secondaryButtonText,
+              secondaryButtonUrl: activeSection.secondaryButtonUrl,
             })
           }
         }
@@ -49,6 +57,10 @@ export default function HeroClient({ initialHomeSection }: HeroClientProps) {
       roles={homeSection?.roles}
       description={homeSection?.description}
       imageUrl={homeSection?.imageUrl}
+      primaryButtonText={homeSection?.primaryButtonText}
+      primaryButtonUrl={homeSection?.primaryButtonUrl}
+      secondaryButtonText={homeSection?.secondaryButtonText}
+      secondaryButtonUrl={homeSection?.secondaryButtonUrl}
     />
   )
 }

@@ -1,82 +1,91 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ============================================
+# OS / editors
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*.tmp
+.idea/
+.vscode/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
+# ============================================
+# Node / package managers
+# ============================================
+node_modules/
+.pnpm-store/
+.npm/
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.pnp
+.pnp.*
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# ============================================
+# Logs
+# ============================================
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# env files (can opt-in for commiting if needed)
-.env*
+# ============================================
+# Environment files
+# Keep only examples tracked
+# ============================================
+.env
+.env.*
 !.env.example
 
-# vercel
-.vercel
-
-# typescript
+# ============================================
+# Build / cache artifacts
+# ============================================
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+.cache/
 *.tsbuildinfo
 next-env.d.ts
 
 # ============================================
-# Frontend (Next.js) - Portfolio-Jhasmany-Frontend
+# Frontend (Next.js)
 # ============================================
 Portfolio-Jhasmany-Frontend/node_modules/
 Portfolio-Jhasmany-Frontend/.next/
 Portfolio-Jhasmany-Frontend/out/
-Portfolio-Jhasmany-Frontend/build/
 Portfolio-Jhasmany-Frontend/dist/
-Portfolio-Jhasmany-Frontend/.env*
-Portfolio-Jhasmany-Frontend/.vercel
-Portfolio-Jhasmany-Frontend/.turbo
+Portfolio-Jhasmany-Frontend/build/
+Portfolio-Jhasmany-Frontend/.vercel/
+Portfolio-Jhasmany-Frontend/.turbo/
+Portfolio-Jhasmany-Frontend/.env
+Portfolio-Jhasmany-Frontend/.env.*
+!Portfolio-Jhasmany-Frontend/.env.example
 Portfolio-Jhasmany-Frontend/*.tsbuildinfo
 Portfolio-Jhasmany-Frontend/next-env.d.ts
-Portfolio-Jhasmany-Frontend/.DS_Store
-Portfolio-Jhasmany-Frontend/npm-debug.log*
-Portfolio-Jhasmany-Frontend/yarn-debug.log*
-Portfolio-Jhasmany-Frontend/yarn-error.log*
-Portfolio-Jhasmany-Frontend/pnpm-debug.log*
 
 # ============================================
-# Backend (NestJS) - Portfolio-Jhasmany-Backend
+# Backend (NestJS)
 # ============================================
 Portfolio-Jhasmany-Backend/node_modules/
 Portfolio-Jhasmany-Backend/dist/
 Portfolio-Jhasmany-Backend/build/
-Portfolio-Jhasmany-Backend/.env*
-Portfolio-Jhasmany-Backend/uploads/
-Portfolio-Jhasmany-Backend/*.log
 Portfolio-Jhasmany-Backend/logs/
-Portfolio-Jhasmany-Backend/.DS_Store
-Portfolio-Jhasmany-Backend/npm-debug.log*
-Portfolio-Jhasmany-Backend/yarn-debug.log*
-Portfolio-Jhasmany-Backend/yarn-error.log*
-Portfolio-Jhasmany-Backend/pnpm-debug.log*
+Portfolio-Jhasmany-Backend/uploads/
+Portfolio-Jhasmany-Backend/.env
+Portfolio-Jhasmany-Backend/.env.*
+!Portfolio-Jhasmany-Backend/.env.example
 Portfolio-Jhasmany-Backend/*.tsbuildinfo
 
 # ============================================
-# Docker
+# Deployment / docker
 # ============================================
+.vercel/
 .docker/
+*.pem

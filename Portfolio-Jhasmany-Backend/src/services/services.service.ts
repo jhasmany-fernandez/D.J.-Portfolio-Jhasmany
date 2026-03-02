@@ -12,10 +12,10 @@ export class ServicesService {
     private servicesRepository: Repository<Service>,
   ) {}
 
-  async create(createServiceDto: CreateServiceDto, authorId: string): Promise<Service> {
+  async create(createServiceDto: CreateServiceDto, authorId?: string): Promise<Service> {
     const service = this.servicesRepository.create({
       ...createServiceDto,
-      authorId,
+      authorId: authorId ?? null,
     });
     return this.servicesRepository.save(service);
   }

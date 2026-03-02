@@ -27,12 +27,6 @@ export const apiClient = ky.create({
         // Add custom headers if needed
         request.headers.set('Content-Type', 'application/json')
         request.headers.set('Accept', 'application/json')
-
-        // Add authorization token if available
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-        if (token) {
-          request.headers.set('Authorization', `Bearer ${token}`)
-        }
       },
     ],
     afterResponse: [

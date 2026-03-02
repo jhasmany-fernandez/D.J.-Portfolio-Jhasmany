@@ -27,8 +27,7 @@ export class ServicesController {
   @ApiOperation({ summary: 'Create a new service' })
   @ApiResponse({ status: 201, description: 'Service created successfully' })
   create(@Body() createServiceDto: CreateServiceDto, @Request() req) {
-    // Use a default author ID if no authentication
-    const authorId = req?.user?.userId || '1b4d78ea-4cad-4daa-9b42-0dd30436b980';
+    const authorId = req?.user?.userId;
     return this.servicesService.create(createServiceDto, authorId);
   }
 

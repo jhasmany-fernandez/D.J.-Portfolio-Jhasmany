@@ -10,13 +10,21 @@ interface HeroProps {
   roles?: string[]
   description?: string
   imageUrl?: string
+  primaryButtonText?: string
+  primaryButtonUrl?: string
+  secondaryButtonText?: string
+  secondaryButtonUrl?: string
 }
 
 const Hero = ({
   greeting = "Hi - I'm Jhasmany Fernandez",
   roles = ['FULLSTACK DEVELOPER', 'INDIE HACKER', 'SOLOPRENEUR'],
   description = 'Crafting innovative solutions to solve real-world problems',
-  imageUrl
+  imageUrl,
+  primaryButtonText = 'Acceso Personal',
+  primaryButtonUrl = '/auth/login',
+  secondaryButtonText = 'Newsletter Clientes',
+  secondaryButtonUrl = '/newsletter/subscribe',
 }: HeroProps) => {
   const ellipseRef = useRotatingAnimation()
   const role = useRoleSwitcher({ roles })
@@ -36,16 +44,16 @@ const Hero = ({
 
           <div className="mt-6 flex flex-wrap gap-6">
             <a
-              href="/auth/login"
+              href={primaryButtonUrl}
               aria-label="Connect with me"
               className="bg-accent min-w-32 cursor-pointer rounded-lg px-[14px] py-[10px] text-center text-sm font-medium text-[#00071E]">
-              Acceso Personal
+              {primaryButtonText}
             </a>
             <a
-              href="/newsletter/subscribe"
+              href={secondaryButtonUrl}
               aria-label="Subscribe to Newsletter"
               className="text-neutral bg-secondary cursor-pointer rounded-lg px-[14px] py-[10px] text-sm">
-              Newsletter Clientes
+              {secondaryButtonText}
             </a>
           </div>
         </div>

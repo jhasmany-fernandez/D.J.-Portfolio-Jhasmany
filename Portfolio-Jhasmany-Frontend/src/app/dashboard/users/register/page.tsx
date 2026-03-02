@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { usersService } from '@/services/users'
+import { authService } from '@/services/auth'
 
 interface UserFormData {
   email: string
@@ -23,11 +24,13 @@ export default function RegisterUserPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    // Check if user has auth token
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-    if (!token) {
-      router.push('/auth/login')
+    const checkSession = async () => {
+      const currentUser = await authService.getCurrentUser()
+      if (!currentUser) {
+        router.push('/auth/login')
+      }
     }
+    checkSession()
   }, [router])
 
   const validateForm = () => {

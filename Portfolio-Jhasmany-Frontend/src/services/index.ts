@@ -17,7 +17,6 @@ const fetchAllProjectsFromAPI = async (): Promise<Project[]> => {
       ? (process.env.API_URL || 'http://backend:3001')  // Direct backend call during SSR
       : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002') // Frontend proxy for client
 
-    console.log('[fetchAllProjectsFromAPI] Fetching from:', `${apiUrl}/api/projects`, 'isServer:', isServer)
 
     const response = await fetch(`${apiUrl}/api/projects`, {
       method: 'GET',
@@ -40,7 +39,6 @@ const fetchAllProjectsFromAPI = async (): Promise<Project[]> => {
     // - Frontend API route returns object: {projects: [{...}]}
     const projects = Array.isArray(data) ? data : (data.projects || [])
 
-    console.log('[fetchAllProjectsFromAPI] Received projects:', projects.length)
     return projects
   } catch (error) {
     console.error('[fetchAllProjectsFromAPI] Fatal error - NO FALLBACK:', error)
@@ -67,7 +65,6 @@ const fetchAllServicesFromAPI = async (): Promise<any[]> => {
       ? (process.env.API_URL || 'http://backend:3001')  // Direct backend call during SSR
       : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002') // Frontend proxy for client
 
-    console.log('[fetchAllServicesFromAPI] Fetching from:', `${apiUrl}/api/services`, 'isServer:', isServer)
 
     const response = await fetch(`${apiUrl}/api/services`, {
       method: 'GET',
@@ -93,7 +90,6 @@ const fetchAllServicesFromAPI = async (): Promise<any[]> => {
     // Filter only published services
     const publishedServices = services.filter((service: any) => service.isPublished)
 
-    console.log('[fetchAllServicesFromAPI] Received services:', publishedServices.length)
     return publishedServices
   } catch (error) {
     console.error('[fetchAllServicesFromAPI] Fatal error - NO FALLBACK:', error)
@@ -112,7 +108,6 @@ const fetchAllTestimonialsFromAPI = async (): Promise<Testimonial[]> => {
       ? (process.env.API_URL || 'http://backend:3001')
       : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002')
 
-    console.log('[fetchAllTestimonialsFromAPI] Fetching from:', `${apiUrl}/api/testimonials`, 'isServer:', isServer)
 
     const response = await fetch(`${apiUrl}/api/testimonials/published`, {
       method: 'GET',
@@ -129,7 +124,6 @@ const fetchAllTestimonialsFromAPI = async (): Promise<Testimonial[]> => {
     const data = await response.json()
     const testimonials = Array.isArray(data) ? data : (data.testimonials || [])
 
-    console.log('[fetchAllTestimonialsFromAPI] Received testimonials:', testimonials.length)
     return testimonials
   } catch (error) {
     console.error('[fetchAllTestimonialsFromAPI] Fatal error - NO FALLBACK:', error)
@@ -148,7 +142,6 @@ const fetchAllSkillsFromAPI = async (): Promise<any[]> => {
       ? (process.env.API_URL || 'http://backend:3001')
       : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002')
 
-    console.log('[fetchAllSkillsFromAPI] Fetching from:', `${apiUrl}/api/skills`, 'isServer:', isServer)
 
     const response = await fetch(`${apiUrl}/api/skills`, {
       method: 'GET',
@@ -166,7 +159,6 @@ const fetchAllSkillsFromAPI = async (): Promise<any[]> => {
     const skills = Array.isArray(data) ? data : (data.skills || [])
     const publishedSkills = skills.filter((skill: any) => skill.isPublished)
 
-    console.log('[fetchAllSkillsFromAPI] Received skills:', publishedSkills.length)
     return publishedSkills
   } catch (error) {
     console.error('[fetchAllSkillsFromAPI] Fatal error - NO FALLBACK:', error)

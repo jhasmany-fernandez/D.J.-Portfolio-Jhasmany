@@ -16,20 +16,36 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [currentLanguage, setCurrentLanguage] = useState<Language>('En')
   const availableLanguages: Language[] = ['En', 'Es', 'Fr', 'De', 'Ru']
 
-  // Load saved language from localStorage on mount
+  const getLanguageFromCookie = (): Language | null => {
+    if (typeof document === 'undefined') return null
+    const rawCookie = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('portfolio-language='))
+      ?.split('=')[1]
+
+    if (!rawCookie) return null
+    const decoded = decodeURIComponent(rawCookie) as Language
+    return availableLanguages.includes(decoded) ? decoded : null
+  }
+
+  const setLanguageCookie = (language: Language) => {
+    if (typeof document === 'undefined') return
+    document.cookie = `portfolio-language=${encodeURIComponent(language)}; Path=/; Max-Age=31536000; SameSite=Lax`
+  }
+
+  // Load saved language from cookie on mount
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('portfolio-language') as Language
-    if (savedLanguage && availableLanguages.includes(savedLanguage)) {
+    const savedLanguage = getLanguageFromCookie()
+    if (savedLanguage) {
       setCurrentLanguage(savedLanguage)
     }
   }, [])
 
   const setLanguage = (language: Language) => {
     setCurrentLanguage(language)
-    localStorage.setItem('portfolio-language', language)
+    setLanguageCookie(language)
 
     // Add a console log to show the language change
-    console.log(`🌐 Language changed to: ${language}`)
   }
 
   return (

@@ -29,6 +29,29 @@ export class Footer {
   @Column()
   locationLine2: string;
 
+  // Social Media Links
+  @Column({ nullable: true, default: '' })
+  githubUrl: string;
+
+  @Column({ nullable: true, default: '' })
+  linkedinUrl: string;
+
+  @Column({ nullable: true, default: '' })
+  codepenUrl: string;
+
+  @Column({ nullable: true, default: '' })
+  twitterUrl: string;
+
+  @Column({ nullable: true, default: '' })
+  instagramUrl: string;
+
+  @Column({ nullable: true, default: '' })
+  facebookUrl: string;
+
+  // Available Languages
+  @Column({ type: 'simple-array', nullable: true, default: 'en,es' })
+  availableLanguages: string[];
+
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 

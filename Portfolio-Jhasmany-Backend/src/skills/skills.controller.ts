@@ -8,22 +8,41 @@ import {
   Delete,
   Query,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { UsersService } from '../users/users.service';
 
 @ApiTags('skills')
 @Controller('skills')
 export class SkillsController {
-  constructor(private readonly skillsService: SkillsService) {}
+  constructor(
+    private readonly skillsService: SkillsService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new skill' })
   @ApiResponse({ status: 201, description: 'Skill created successfully' })
-  create(@Body() createSkillDto: CreateSkillDto, @Request() req) {
-    const authorId = req?.user?.userId || '1b4d78ea-4cad-4daa-9b42-0dd30436b980';
+  async create(@Body() createSkillDto: CreateSkillDto, @Request() req) {
+    const authorIdFromToken = req?.user?.userId;
+    const defaultAuthorEmail =
+      process.env.DEFAULT_AUTHOR_EMAIL || 'jhasmany.fernandez.dev@gmail.com';
+
+    const defaultAuthor = await this.usersService.findByEmail(defaultAuthorEmail);
+    const fallbackAuthorId =
+      defaultAuthor?.id || (await this.usersService.findAll())[0]?.id;
+
+    const authorId = authorIdFromToken || fallbackAuthorId;
+    if (!authorId) {
+      throw new BadRequestException(
+        'No valid author found to create the skill. Create a user first.',
+      );
+    }
+
     return this.skillsService.create(createSkillDto, authorId);
   }
 

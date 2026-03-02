@@ -43,7 +43,6 @@ export async function PATCH(
     const backendURL = getBackendURL()
     const { id } = await params
 
-    console.log('[Home API] Backend URL:', `${backendURL}/api/home/${id}`)
 
     const response = await fetch(`${backendURL}/api/home/${id}`, {
       method: 'PATCH',
@@ -53,7 +52,6 @@ export async function PATCH(
       body: JSON.stringify(body),
     })
 
-    console.log('[Home API] Response status:', response.status)
 
     if (!response.ok) {
       const error = await response.json()
@@ -62,7 +60,6 @@ export async function PATCH(
     }
 
     const result = await response.json()
-    console.log('[Home API] Success:', result)
 
     // Revalidate cache to show changes immediately on main page
     revalidateTag('home')

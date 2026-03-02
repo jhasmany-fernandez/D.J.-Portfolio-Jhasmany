@@ -42,14 +42,7 @@ export async function POST(request: NextRequest) {
         )
       }
     } else {
-      // Log the contact form submission (you can replace this with email service)
-      console.log('[Contact Form Submission]', {
-        name: validated.name,
-        email: validated.email,
-        subject: validated.subject,
-        message: validated.message.substring(0, 50) + '...',
-        timestamp: new Date().toISOString(),
-      })
+      // No external contact provider configured.
     }
 
     return NextResponse.json({

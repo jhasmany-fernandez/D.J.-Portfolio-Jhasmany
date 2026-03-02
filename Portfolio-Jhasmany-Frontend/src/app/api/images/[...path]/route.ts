@@ -7,11 +7,17 @@ export async function GET(
   try {
     const { path: pathArray } = await params
     const path = pathArray.join('/');
+    const uuidRegex = /^[0-9a-fA-F-]{36}$/;
+
+    // Ignore legacy/non-DB image paths to avoid noisy backend ParseUUID errors.
+    if (!uuidRegex.test(path)) {
+      return new NextResponse('Image not found', { status: 404 });
+    }
+
     const backendUrl = process.env.API_URL || 'http://backend:3001';
 
-    // Fetch image from backend
-    const imageUrl = `${backendUrl}/uploads/${path}`;
-    const response = await fetch(imageUrl);
+    const dbImageUrl = `${backendUrl}/api/upload/image/${path}`;
+    const response = await fetch(dbImageUrl);
 
     if (!response.ok) {
       return new NextResponse('Image not found', { status: 404 });

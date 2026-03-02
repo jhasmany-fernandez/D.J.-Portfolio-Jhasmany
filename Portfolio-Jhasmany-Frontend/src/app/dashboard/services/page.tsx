@@ -27,6 +27,15 @@ interface Service {
   updatedAt?: string
 }
 
+interface StoredImage {
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  createdAt: string
+  url: string
+}
+
 export default function ServicesPage() {
   const toast = useToast()
   const [services, setServices] = useState<Service[]>([])
@@ -62,6 +71,10 @@ export default function ServicesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [techInput, setTechInput] = useState('')
+  const [showSavedImagesModal, setShowSavedImagesModal] = useState(false)
+  const [storedImages, setStoredImages] = useState<StoredImage[]>([])
+  const [loadingStoredImages, setLoadingStoredImages] = useState(false)
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
 
   // Fetch services
   const fetchServices = async () => {
@@ -115,6 +128,83 @@ export default function ServicesPage() {
         setPreviewUrl(reader.result as string)
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const fetchStoredImages = async () => {
+    setLoadingStoredImages(true)
+    try {
+      const response = await fetch('/api/upload/image', { cache: 'no-store' })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setStoredImages(data.images || [])
+    } catch (error) {
+      console.error('Error fetching stored images:', error)
+      toast.error('Error loading saved images')
+    } finally {
+      setLoadingStoredImages(false)
+    }
+  }
+
+  const openSavedImagesModal = async () => {
+    setShowSavedImagesModal(true)
+    await fetchStoredImages()
+  }
+
+  const selectStoredImage = (url: string) => {
+    setSelectedFile(null)
+    setPreviewUrl(url)
+
+    if (editingService && editForm) {
+      setEditForm({ ...editForm, imageUrl: url })
+    } else {
+      setCreateForm({ ...createForm, imageUrl: url })
+    }
+
+    setShowSavedImagesModal(false)
+  }
+
+  const deleteStoredImage = async (image: StoredImage) => {
+    if (!confirm(`Delete image "${image.originalName}"?`)) return
+
+    setDeletingImageId(image.id)
+    try {
+      const response = await fetch(`/api/upload/image/${image.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      setStoredImages((prev) => prev.filter((item) => item.id !== image.id))
+
+      if (previewUrl === image.url) {
+        setPreviewUrl(null)
+      }
+
+      if (editForm?.imageUrl === image.url) {
+        setEditForm({ ...editForm, imageUrl: '' })
+      }
+
+      if (createForm.imageUrl === image.url) {
+        setCreateForm({ ...createForm, imageUrl: '' })
+      }
+
+      toast.success('Image deleted successfully')
+    } catch (error) {
+      console.error('Error deleting stored image:', error)
+      toast.error('Error deleting image')
+    } finally {
+      setDeletingImageId(null)
     }
   }
 
@@ -656,6 +746,13 @@ export default function ServicesPage() {
                     onChange={handleFileSelect}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80"
                   />
+                  <button
+                    type="button"
+                    onClick={openSavedImagesModal}
+                    className="mt-3 bg-primary border border-border hover:bg-accent hover:text-secondary text-primary-content px-4 py-2 rounded-lg transition-colors duration-200"
+                  >
+                    Seleccionar imagenes guardadas
+                  </button>
                   {previewUrl && (
                     <div className="mt-3">
                       <img
@@ -991,6 +1088,13 @@ export default function ServicesPage() {
                     onChange={handleFileSelect}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80"
                   />
+                  <button
+                    type="button"
+                    onClick={openSavedImagesModal}
+                    className="mt-3 bg-primary border border-border hover:bg-accent hover:text-secondary text-primary-content px-4 py-2 rounded-lg transition-colors duration-200"
+                  >
+                    Seleccionar imagenes guardadas
+                  </button>
                   {previewUrl && (
                     <div className="mt-3">
                       <img
@@ -1272,6 +1376,78 @@ export default function ServicesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSavedImagesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-secondary border border-border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-neutral">Imagenes guardadas</h3>
+              <button
+                type="button"
+                onClick={() => setShowSavedImagesModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition-colors duration-200"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={fetchStoredImages}
+                className="bg-accent hover:bg-accent/80 text-secondary px-4 py-2 rounded-lg transition-colors duration-200"
+                disabled={loadingStoredImages}
+              >
+                {loadingStoredImages ? 'Cargando...' : 'Actualizar lista'}
+              </button>
+            </div>
+
+            {loadingStoredImages ? (
+              <div className="text-tertiary-content">Loading images...</div>
+            ) : storedImages.length === 0 ? (
+              <div className="text-tertiary-content">No saved images found.</div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {storedImages.map((image) => (
+                  <div key={image.id} className="bg-primary border border-border rounded-lg p-3">
+                    <img
+                      src={image.url}
+                      alt={image.originalName}
+                      className="w-full h-36 object-cover rounded-lg border border-border mb-3"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                      }}
+                    />
+                    <div className="text-xs text-tertiary-content mb-1 truncate" title={image.originalName}>
+                      {image.originalName}
+                    </div>
+                    <div className="text-xs text-tertiary-content mb-3">
+                      {formatBytes(image.size)}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => selectStoredImage(image.url)}
+                        className="flex-1 bg-accent hover:bg-accent/80 text-secondary px-3 py-2 rounded text-sm transition-colors duration-200"
+                      >
+                        Seleccionar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteStoredImage(image)}
+                        disabled={deletingImageId === image.id}
+                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-2 rounded text-sm transition-colors duration-200"
+                      >
+                        {deletingImageId === image.id ? 'Eliminando...' : 'Eliminar'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

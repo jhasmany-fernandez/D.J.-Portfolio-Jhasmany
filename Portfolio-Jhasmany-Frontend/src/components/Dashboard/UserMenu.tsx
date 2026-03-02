@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { authService } from '@/services/auth'
 
 // Mock user data - replace with actual auth context
 const mockUser = {
@@ -39,8 +40,8 @@ const UserMenu = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const router = useRouter()
 
-  const handleLogout = () => {
-    // TODO: Add actual logout logic
+  const handleLogout = async () => {
+    await authService.logout()
     router.push('/auth/login')
   }
 

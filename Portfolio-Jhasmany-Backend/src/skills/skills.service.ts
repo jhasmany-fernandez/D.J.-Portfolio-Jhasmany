@@ -6,12 +6,14 @@ import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class SkillsService {
   constructor(
     @InjectRepository(Skill)
     private skillsRepository: Repository<Skill>,
+    private readonly uploadService: UploadService,
   ) {}
 
   async create(createSkillDto: CreateSkillDto, authorId: string): Promise<Skill> {
@@ -63,6 +65,11 @@ export class SkillsService {
 
   private async deleteImageFile(imageUrl: string): Promise<void> {
     try {
+      const deletedFromDatabase = await this.uploadService.deleteImageFromUrl(imageUrl);
+      if (deletedFromDatabase) {
+        return;
+      }
+
       const filename = imageUrl.split('/').pop();
       if (!filename) return;
 
@@ -71,9 +78,7 @@ export class SkillsService {
       try {
         await fs.access(filePath);
         await fs.unlink(filePath);
-        console.log(`Deleted old image: ${filename}`);
       } catch (error) {
-        console.log(`Image file not found or already deleted: ${filename}`);
       }
     } catch (error) {
       console.error('Error deleting image file:', error);

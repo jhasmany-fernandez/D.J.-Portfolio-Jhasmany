@@ -12,7 +12,6 @@ const getBackendURL = () => {
 export async function GET() {
   try {
     const backendURL = getBackendURL()
-    console.log('Fetching skills from backend API:', `${backendURL}/api/skills`)
 
     const response = await fetch(`${backendURL}/api/skills`, {
       cache: 'no-store',
@@ -25,7 +24,6 @@ export async function GET() {
     }
 
     const skills = await response.json()
-    console.log('Skills received from backend:', Array.isArray(skills) ? skills.length : 'not an array')
 
     // Sort by order
     if (Array.isArray(skills)) {
@@ -47,7 +45,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const backendURL = getBackendURL()
 
-    console.log('Creating skill on backend:', body.name)
 
     const response = await fetch(`${backendURL}/api/skills`, {
       method: 'POST',
@@ -64,7 +61,6 @@ export async function POST(request: Request) {
     }
 
     const result = await response.json()
-    console.log('Skill created successfully:', result)
 
     revalidateTag('skills')
 

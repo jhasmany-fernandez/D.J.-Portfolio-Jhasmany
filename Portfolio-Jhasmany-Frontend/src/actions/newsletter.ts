@@ -21,12 +21,6 @@ export async function subscribeNewsletterAction(prevState: unknown, formData: Fo
   }
 
   try {
-    console.log('📧 Attempting newsletter subscription:', {
-      email: validatedFields.data.email,
-      API_URL,
-      url: `${API_URL}/api/newsletter/subscribe`
-    })
-
     const response = await fetch(`${API_URL}/api/newsletter/subscribe`, {
       method: 'POST',
       headers: {
@@ -35,10 +29,7 @@ export async function subscribeNewsletterAction(prevState: unknown, formData: Fo
       body: JSON.stringify(validatedFields.data),
     })
 
-    console.log('📧 Response status:', response.status, response.ok)
-
     const data = await response.json()
-    console.log('📧 Response data:', data)
 
     if (response.ok) {
       return {

@@ -1,6 +1,7 @@
 'use server'
 
 import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from '@/schemas/auth.schema'
+import { cookies } from 'next/headers'
 
 const API_URL = process.env.API_URL || 'http://backend:3001'
 
@@ -31,7 +32,17 @@ export async function loginAction(prevState: unknown, formData: FormData) {
     const data = await response.json()
 
     if (response.ok) {
-      // TODO: Store JWT token in secure way (HttpOnly cookie)
+      if (data.access_token) {
+        const cookieStore = await cookies()
+        cookieStore.set('auth_token', data.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7,
+        })
+      }
+
       return {
         success: true,
         message: 'Login successful! Redirecting...',

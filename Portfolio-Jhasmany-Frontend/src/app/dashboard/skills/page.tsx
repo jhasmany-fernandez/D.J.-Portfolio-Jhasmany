@@ -14,6 +14,17 @@ interface Skill {
   updatedAt?: string
 }
 
+interface StoredImage {
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  createdAt: string
+  url: string
+}
+
+type ImageSection = 'Home' | 'Projects' | 'Skills' | 'Services' | 'Sin seccion'
+
 export default function SkillsPage() {
   const toast = useToast()
   const [skills, setSkills] = useState<Skill[]>([])
@@ -33,6 +44,11 @@ export default function SkillsPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showSavedImagesModal, setShowSavedImagesModal] = useState(false)
+  const [storedImages, setStoredImages] = useState<StoredImage[]>([])
+  const [loadingStoredImages, setLoadingStoredImages] = useState(false)
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
+  const [imageUsageById, setImageUsageById] = useState<Record<string, ImageSection[]>>({})
 
   // Fetch skills
   const fetchSkills = async () => {
@@ -52,6 +68,161 @@ export default function SkillsPage() {
       setSkills([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const sectionOrder: ImageSection[] = ['Home', 'Projects', 'Skills', 'Services', 'Sin seccion']
+
+  const extractImageIdFromUrl = (url?: string | null) => {
+    if (!url) return null
+    const match = url.match(/\/api\/images\/([0-9a-fA-F-]{36})/)
+    return match ? match[1] : null
+  }
+
+  const addUsage = (
+    map: Record<string, ImageSection[]>,
+    imageId: string | null,
+    section: Exclude<ImageSection, 'Sin seccion'>
+  ) => {
+    if (!imageId) return
+    if (!map[imageId]) {
+      map[imageId] = [section]
+      return
+    }
+    if (!map[imageId].includes(section)) {
+      map[imageId].push(section)
+    }
+  }
+
+  const fetchImageUsageBySection = async (): Promise<Record<string, ImageSection[]>> => {
+    const usageMap: Record<string, ImageSection[]> = {}
+
+    const [homeRes, projectsRes, skillsRes, servicesRes] = await Promise.all([
+      fetch('/api/home', { cache: 'no-store' }),
+      fetch('/api/projects', { cache: 'no-store' }),
+      fetch('/api/skills', { cache: 'no-store' }),
+      fetch('/api/services', { cache: 'no-store' }),
+    ])
+
+    if (homeRes.ok) {
+      const homeData = await homeRes.json()
+      for (const section of homeData.homeSections || []) {
+        addUsage(usageMap, extractImageIdFromUrl(section.imageUrl), 'Home')
+      }
+    }
+
+    if (projectsRes.ok) {
+      const projectsData = await projectsRes.json()
+      for (const project of projectsData.projects || []) {
+        addUsage(usageMap, extractImageIdFromUrl(project.imageUrl), 'Projects')
+        addUsage(usageMap, extractImageIdFromUrl(project.cover), 'Projects')
+      }
+    }
+
+    if (skillsRes.ok) {
+      const skillsData = await skillsRes.json()
+      for (const skill of skillsData.skills || []) {
+        addUsage(usageMap, extractImageIdFromUrl(skill.imageUrl), 'Skills')
+        addUsage(usageMap, extractImageIdFromUrl(skill.icon), 'Skills')
+      }
+    }
+
+    if (servicesRes.ok) {
+      const servicesData = await servicesRes.json()
+      for (const service of servicesData.services || []) {
+        addUsage(usageMap, extractImageIdFromUrl(service.imageUrl), 'Services')
+        addUsage(usageMap, extractImageIdFromUrl(service.icon), 'Services')
+      }
+    }
+
+    return usageMap
+  }
+
+  const fetchStoredImages = async () => {
+    setLoadingStoredImages(true)
+    try {
+      const [imagesResponse, usageMap] = await Promise.all([
+        fetch('/api/upload/image', { cache: 'no-store' }),
+        fetchImageUsageBySection(),
+      ])
+
+      if (!imagesResponse.ok) {
+        throw new Error(`HTTP error! status: ${imagesResponse.status}`)
+      }
+
+      const data = await imagesResponse.json()
+      setStoredImages(data.images || [])
+      setImageUsageById(usageMap)
+    } catch (error) {
+      console.error('Error fetching stored images:', error)
+      toast.error('Error loading saved images')
+    } finally {
+      setLoadingStoredImages(false)
+    }
+  }
+
+  const openSavedImagesModal = async () => {
+    setShowSavedImagesModal(true)
+    await fetchStoredImages()
+  }
+
+  const selectStoredImage = (url: string) => {
+    setSelectedFile(null)
+    setPreviewUrl(url)
+
+    if (editingSkill && editForm) {
+      setEditForm({ ...editForm, imageUrl: url })
+    } else {
+      setCreateForm({ ...createForm, imageUrl: url })
+    }
+
+    setShowSavedImagesModal(false)
+  }
+
+  const deleteStoredImage = async (image: StoredImage) => {
+    if (!confirm(`Delete image "${image.originalName}"?`)) return
+
+    setDeletingImageId(image.id)
+    try {
+      const response = await fetch(`/api/upload/image/${image.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      setStoredImages((prev) => prev.filter((item) => item.id !== image.id))
+      setImageUsageById((prev) => {
+        const next = { ...prev }
+        delete next[image.id]
+        return next
+      })
+
+      if (previewUrl === image.url) {
+        setPreviewUrl(null)
+      }
+
+      if (editForm?.imageUrl === image.url) {
+        setEditForm({ ...editForm, imageUrl: '' })
+      }
+
+      if (createForm.imageUrl === image.url) {
+        setCreateForm({ ...createForm, imageUrl: '' })
+      }
+
+      toast.success('Image deleted successfully')
+    } catch (error) {
+      console.error('Error deleting stored image:', error)
+      toast.error('Error deleting image')
+    } finally {
+      setDeletingImageId(null)
     }
   }
 
@@ -254,7 +425,6 @@ export default function SkillsPage() {
 
       const { id, createdAt, updatedAt, author, authorId, ...updateData } = editForm as any
 
-      console.log('[Skills Page] Updating skill:', editingSkill.id, 'Data:', updateData)
 
       const response = await fetch(`/api/skills/${editingSkill.id}`, {
         method: 'PATCH',
@@ -264,7 +434,6 @@ export default function SkillsPage() {
         body: JSON.stringify(updateData)
       })
 
-      console.log('[Skills Page] Response status:', response.status)
 
       if (response.ok) {
         await fetchSkills()
@@ -317,6 +486,23 @@ export default function SkillsPage() {
   useEffect(() => {
     fetchSkills()
   }, [])
+
+  const getPrimarySection = (imageId: string): ImageSection => {
+    const usage = imageUsageById[imageId] || []
+    for (const section of sectionOrder) {
+      if (section !== 'Sin seccion' && usage.includes(section)) {
+        return section
+      }
+    }
+    return 'Sin seccion'
+  }
+
+  const groupedStoredImages = sectionOrder
+    .map((section) => ({
+      section,
+      images: storedImages.filter((image) => getPrimarySection(image.id) === section),
+    }))
+    .filter((group) => group.images.length > 0)
 
   if (loading) {
     return (
@@ -513,6 +699,13 @@ export default function SkillsPage() {
                 <label className="block text-sm font-medium text-neutral mb-2">
                   Skill Image (optional)
                 </label>
+                <button
+                  type="button"
+                  onClick={openSavedImagesModal}
+                  className="mb-3 bg-primary hover:bg-primary/80 text-primary-content border border-border px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Seleccionar imagenes guardadas
+                </button>
                 <div className="mb-3">
                   <label className="block text-sm text-tertiary-content mb-2">
                     Upload image:
@@ -627,6 +820,13 @@ export default function SkillsPage() {
                 <label className="block text-sm font-medium text-neutral mb-2">
                   Skill Image (optional)
                 </label>
+                <button
+                  type="button"
+                  onClick={openSavedImagesModal}
+                  className="mb-3 bg-primary hover:bg-primary/80 text-primary-content border border-border px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Seleccionar imagenes guardadas
+                </button>
                 <div className="mb-3">
                   <label className="block text-sm text-tertiary-content mb-2">
                     Upload new image:
@@ -710,6 +910,100 @@ export default function SkillsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSavedImagesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-secondary border border-border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-neutral">Imagenes guardadas</h3>
+              <button
+                type="button"
+                onClick={() => setShowSavedImagesModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition-colors duration-200"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={fetchStoredImages}
+                className="bg-accent hover:bg-accent/80 text-secondary px-4 py-2 rounded-lg transition-colors duration-200"
+                disabled={loadingStoredImages}
+              >
+                {loadingStoredImages ? 'Cargando...' : 'Actualizar lista'}
+              </button>
+            </div>
+
+            {loadingStoredImages ? (
+              <div className="text-tertiary-content">Loading images...</div>
+            ) : storedImages.length === 0 ? (
+              <div className="text-tertiary-content">No saved images found.</div>
+            ) : (
+              <div className="space-y-6">
+                {groupedStoredImages.map((group) => (
+                  <div key={group.section}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="text-lg font-semibold text-neutral">{group.section}</h4>
+                      <span className="text-xs text-tertiary-content">{group.images.length} imagen(es)</span>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {group.images.map((image) => {
+                        const extraSections = (imageUsageById[image.id] || []).filter(
+                          (section) => section !== group.section
+                        )
+
+                        return (
+                          <div key={image.id} className="bg-primary border border-border rounded-lg p-3">
+                            <img
+                              src={image.url}
+                              alt={image.originalName}
+                              className="w-full h-36 object-cover rounded-lg border border-border mb-3"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                            <div className="text-xs text-tertiary-content mb-1 truncate" title={image.originalName}>
+                              {image.originalName}
+                            </div>
+                            <div className="text-xs text-tertiary-content mb-1">
+                              {formatBytes(image.size)}
+                            </div>
+                            {extraSections.length > 0 && (
+                              <div className="text-xs text-tertiary-content mb-3">
+                                Tambien en: {extraSections.join(', ')}
+                              </div>
+                            )}
+                            {extraSections.length === 0 && <div className="mb-3" />}
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => selectStoredImage(image.url)}
+                                className="flex-1 bg-accent hover:bg-accent/80 text-secondary px-3 py-2 rounded text-sm transition-colors duration-200"
+                              >
+                                Seleccionar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteStoredImage(image)}
+                                disabled={deletingImageId === image.id}
+                                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-2 rounded text-sm transition-colors duration-200"
+                              >
+                                {deletingImageId === image.id ? 'Eliminando...' : 'Eliminar'}
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

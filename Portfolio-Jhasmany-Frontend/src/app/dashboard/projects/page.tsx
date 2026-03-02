@@ -8,8 +8,23 @@ interface ProjectWithId extends Project {
   id: string
 }
 
+interface StoredImage {
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  createdAt: string
+  url: string
+}
+
+const STORED_IMAGE_URL_REGEX = /^\/api\/images\/[0-9a-fA-F-]{36}$/
+
+const sanitizeStoredImageUrl = (value?: string | null) => {
+  const normalized = (value || '').trim()
+  return STORED_IMAGE_URL_REGEX.test(normalized) ? normalized : ''
+}
+
 export default function ProjectsPage() {
-  console.log('ProjectsPage component rendering with file upload feature...')
 
   const toast = useToast()
   const [projects, setProjects] = useState<ProjectWithId[]>([])
@@ -29,21 +44,21 @@ export default function ProjectsPage() {
   const [uploadingImage, setUploadingImage] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [showSavedImagesModal, setShowSavedImagesModal] = useState(false)
+  const [storedImages, setStoredImages] = useState<StoredImage[]>([])
+  const [loadingStoredImages, setLoadingStoredImages] = useState(false)
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
 
   // Fetch projects
   const fetchProjects = async () => {
     try {
-      console.log('Fetching projects from /api/projects...')
       const response = await fetch('/api/projects')
-      console.log('Response status:', response.status)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
-      console.log('Projects data received:', data)
-      console.log('Number of projects:', data.projects?.length)
       setProjects(data.projects || [])
       setError(null)
     } catch (error) {
@@ -89,6 +104,84 @@ export default function ProjectsPage() {
     }
   }
 
+  const formatBytes = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const fetchStoredImages = async () => {
+    setLoadingStoredImages(true)
+    try {
+      const response = await fetch('/api/upload/image', { cache: 'no-store' })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setStoredImages(data.images || [])
+    } catch (error) {
+      console.error('Error fetching stored images:', error)
+      toast.error('Error loading saved images')
+    } finally {
+      setLoadingStoredImages(false)
+    }
+  }
+
+  const openSavedImagesModal = async () => {
+    setShowSavedImagesModal(true)
+    await fetchStoredImages()
+  }
+
+  const selectStoredImage = (url: string) => {
+    const safeUrl = sanitizeStoredImageUrl(url)
+    setSelectedFile(null)
+    setPreviewUrl(safeUrl || null)
+
+    if (editingProject && editForm) {
+      setEditForm({ ...editForm, cover: safeUrl, imageUrl: safeUrl })
+    } else {
+      setCreateForm({ ...createForm, cover: safeUrl, imageUrl: safeUrl })
+    }
+
+    setShowSavedImagesModal(false)
+  }
+
+  const deleteStoredImage = async (image: StoredImage) => {
+    if (!confirm(`Delete image "${image.originalName}"?`)) return
+
+    setDeletingImageId(image.id)
+    try {
+      const response = await fetch(`/api/upload/image/${image.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      setStoredImages((prev) => prev.filter((item) => item.id !== image.id))
+
+      if (previewUrl === image.url) {
+        setPreviewUrl(null)
+      }
+
+      if (editForm?.cover === image.url) {
+        setEditForm({ ...editForm, cover: '' })
+      }
+
+      if (createForm.cover === image.url) {
+        setCreateForm({ ...createForm, cover: '' })
+      }
+
+      toast.success('Image deleted successfully')
+    } catch (error) {
+      console.error('Error deleting stored image:', error)
+      toast.error('Error deleting image')
+    } finally {
+      setDeletingImageId(null)
+    }
+  }
+
   // Upload image to backend via Next.js API proxy
   const uploadImage = async () => {
     if (!selectedFile) return null
@@ -125,8 +218,16 @@ export default function ProjectsPage() {
 
   // Start editing project
   const startEditing = (project: ProjectWithId) => {
+    const safeImageUrl =
+      sanitizeStoredImageUrl(project.cover) ||
+      sanitizeStoredImageUrl(project.imageUrl)
+
     setEditingProject(project)
-    setEditForm({ ...project })
+    setEditForm({
+      ...project,
+      cover: safeImageUrl,
+      imageUrl: safeImageUrl,
+    })
     setSelectedFile(null)
     setPreviewUrl(null)
   }
@@ -172,7 +273,6 @@ export default function ProjectsPage() {
 
   // Create new project
   const createProject = async () => {
-    console.log('Creating project:', createForm)
     setSaving(true)
     try {
       let imageUrl = ''
@@ -187,13 +287,17 @@ export default function ProjectsPage() {
         }
       }
 
+      const finalImageUrl = sanitizeStoredImageUrl(
+        imageUrl || createForm.cover || createForm.imageUrl || ''
+      )
+
       // Prepare project data
       const projectData = {
         ...createForm,
-        cover: imageUrl || createForm.cover || ''
+        cover: finalImageUrl,
+        imageUrl: finalImageUrl,
       }
 
-      console.log('Project data being sent to API:', projectData)
 
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -203,11 +307,9 @@ export default function ProjectsPage() {
         body: JSON.stringify(projectData)
       })
 
-      console.log('Create response status:', response.status)
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Create result:', result)
 
         await fetchProjects() // Refresh list
         setShowCreateForm(false)
@@ -230,14 +332,17 @@ export default function ProjectsPage() {
   const saveProject = async () => {
     if (!editForm || !editingProject) return
 
-    console.log('Saving project:', editForm)
     setSaving(true)
     try {
+      let nextCover = editForm.cover || ''
+      let nextImageUrl = editForm.imageUrl || ''
+
       // Upload image first if a file was selected
       if (selectedFile) {
         const imageUrl = await uploadImage()
         if (imageUrl) {
-          editForm.cover = imageUrl
+          nextCover = imageUrl
+          nextImageUrl = imageUrl
         } else {
           toast.error('Error al subir la imagen. Por favor, intenta de nuevo.')
           setSaving(false)
@@ -247,6 +352,9 @@ export default function ProjectsPage() {
 
       // Filter out fields that shouldn't be sent to the backend
       const { id, createdAt, updatedAt, authorId, author, ...updateData } = editForm as any
+      const finalImageUrl = sanitizeStoredImageUrl(nextCover || nextImageUrl)
+      updateData.cover = finalImageUrl
+      updateData.imageUrl = finalImageUrl
 
       const response = await fetch(`/api/projects/${editingProject.id}`, {
         method: 'PUT',
@@ -256,13 +364,10 @@ export default function ProjectsPage() {
         body: JSON.stringify(updateData)
       })
 
-      console.log('Save response status:', response.status)
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Save result:', result)
 
-        console.log('Refreshing projects list...')
         await fetchProjects() // Refresh list
 
         cancelEditing() // Close modal
@@ -537,7 +642,7 @@ export default function ProjectsPage() {
                     Tipo de Proyecto *
                   </label>
                   <select
-                    value={createForm.type}
+                    value={createForm.type ?? 'Personal'}
                     onChange={(e) => updateCreateFormField('type', e.target.value)}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
                     required
@@ -567,6 +672,13 @@ export default function ProjectsPage() {
                     onChange={handleFileSelect}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80"
                   />
+                  <button
+                    type="button"
+                    onClick={openSavedImagesModal}
+                    className="mt-3 bg-primary border border-border hover:bg-accent hover:text-secondary text-primary-content px-4 py-2 rounded-lg transition-colors duration-200"
+                  >
+                    Seleccionar imagenes guardadas
+                  </button>
                   {previewUrl && (
                     <div className="mt-3">
                       <img
@@ -957,7 +1069,7 @@ export default function ProjectsPage() {
                     Tipo de Proyecto *
                   </label>
                   <select
-                    value={editForm.type}
+                    value={editForm.type ?? 'Personal'}
                     onChange={(e) => updateFormField('type', e.target.value)}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
                     required
@@ -987,6 +1099,13 @@ export default function ProjectsPage() {
                     onChange={handleFileSelect}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-secondary hover:file:bg-accent/80"
                   />
+                  <button
+                    type="button"
+                    onClick={openSavedImagesModal}
+                    className="mt-3 bg-primary border border-border hover:bg-accent hover:text-secondary text-primary-content px-4 py-2 rounded-lg transition-colors duration-200"
+                  >
+                    Seleccionar imagenes guardadas
+                  </button>
                   {previewUrl && (
                     <div className="mt-3">
                       <img
@@ -1335,6 +1454,78 @@ export default function ProjectsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSavedImagesModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-secondary border border-border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-neutral">Imagenes guardadas</h3>
+              <button
+                type="button"
+                onClick={() => setShowSavedImagesModal(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition-colors duration-200"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={fetchStoredImages}
+                className="bg-accent hover:bg-accent/80 text-secondary px-4 py-2 rounded-lg transition-colors duration-200"
+                disabled={loadingStoredImages}
+              >
+                {loadingStoredImages ? 'Cargando...' : 'Actualizar lista'}
+              </button>
+            </div>
+
+            {loadingStoredImages ? (
+              <div className="text-tertiary-content">Loading images...</div>
+            ) : storedImages.length === 0 ? (
+              <div className="text-tertiary-content">No saved images found.</div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {storedImages.map((image) => (
+                  <div key={image.id} className="bg-primary border border-border rounded-lg p-3">
+                    <img
+                      src={image.url}
+                      alt={image.originalName}
+                      className="w-full h-36 object-cover rounded-lg border border-border mb-3"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                      }}
+                    />
+                    <div className="text-xs text-tertiary-content mb-1 truncate" title={image.originalName}>
+                      {image.originalName}
+                    </div>
+                    <div className="text-xs text-tertiary-content mb-3">
+                      {formatBytes(image.size)}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => selectStoredImage(image.url)}
+                        className="flex-1 bg-accent hover:bg-accent/80 text-secondary px-3 py-2 rounded text-sm transition-colors duration-200"
+                      >
+                        Seleccionar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteStoredImage(image)}
+                        disabled={deletingImageId === image.id}
+                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-3 py-2 rounded text-sm transition-colors duration-200"
+                      >
+                        {deletingImageId === image.id ? 'Eliminando...' : 'Eliminar'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

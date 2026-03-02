@@ -26,6 +26,18 @@ export class HomeSection {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ default: 'Acceso Personal' })
+  primaryButtonText: string;
+
+  @Column({ default: '/auth/login' })
+  primaryButtonUrl: string;
+
+  @Column({ default: 'Newsletter Clientes' })
+  secondaryButtonText: string;
+
+  @Column({ default: '/newsletter/subscribe' })
+  secondaryButtonUrl: string;
+
   @Column({ default: true })
   isActive: boolean;
 

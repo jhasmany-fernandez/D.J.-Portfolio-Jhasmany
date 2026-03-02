@@ -24,7 +24,6 @@ async function fetchServices() {
     }
 
     const data = await response.json()
-    console.log('Services data received:', data)
 
     // Backend returns array directly, not wrapped in object
     const services = Array.isArray(data) ? data : (data.services || [])

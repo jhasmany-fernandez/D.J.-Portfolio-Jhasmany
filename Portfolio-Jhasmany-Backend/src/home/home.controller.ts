@@ -22,7 +22,7 @@ export class HomeController {
   @ApiOperation({ summary: 'Create a new home section' })
   @ApiResponse({ status: 201, description: 'Home section created successfully' })
   create(@Body() createHomeDto: CreateHomeDto, @Request() req) {
-    const authorId = req?.user?.userId || '1b4d78ea-4cad-4daa-9b42-0dd30436b980';
+    const authorId = req?.user?.userId;
     return this.homeService.create(createHomeDto, authorId);
   }
 

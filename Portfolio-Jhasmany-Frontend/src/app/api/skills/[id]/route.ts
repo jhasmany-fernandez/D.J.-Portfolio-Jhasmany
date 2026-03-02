@@ -39,11 +39,8 @@ async function updateSkill(
   params: { id: string }
 ) {
   try {
-    console.log('[Skills API] Updating skill:', params.id)
     const body = await request.json()
-    console.log('[Skills API] Request body:', JSON.stringify(body).substring(0, 100))
     const backendURL = getBackendURL()
-    console.log('[Skills API] Backend URL:', `${backendURL}/api/skills/${params.id}`)
 
     const response = await fetch(`${backendURL}/api/skills/${params.id}`, {
       method: 'PATCH',
@@ -53,7 +50,6 @@ async function updateSkill(
       body: JSON.stringify(body),
     })
 
-    console.log('[Skills API] Backend response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -67,7 +63,6 @@ async function updateSkill(
     }
 
     const result = await response.json()
-    console.log('[Skills API] Update successful')
     revalidateTag('skills')
 
     return NextResponse.json(result)

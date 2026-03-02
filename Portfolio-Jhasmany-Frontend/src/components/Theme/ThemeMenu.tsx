@@ -11,10 +11,23 @@ const ThemeMenu = () => {
   const [mounted, setMounted] = useState(false)
   const menuRef = useOutsideClick(() => setShowThemeMenu(false))
 
-  // Load theme from localStorage after mounting (client-side only)
+  const getThemeFromCookie = () => {
+    if (typeof document === 'undefined') return 'dark'
+    return document.cookie
+      .split('; ')
+      .find((row) => row.startsWith('theme='))
+      ?.split('=')[1] ?? 'dark'
+  }
+
+  const setThemeCookie = (value: string) => {
+    if (typeof document === 'undefined') return
+    document.cookie = `theme=${encodeURIComponent(value)}; Path=/; Max-Age=31536000; SameSite=Lax`
+  }
+
+  // Load theme from cookie after mounting (client-side only)
   useEffect(() => {
     setMounted(true)
-    const savedTheme = localStorage.getItem('theme') ?? 'dark'
+    const savedTheme = getThemeFromCookie()
     setTheme(savedTheme)
     document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
@@ -27,7 +40,7 @@ const ThemeMenu = () => {
 
   const changeTheme = (newTheme: string) => {
     setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
+    setThemeCookie(newTheme)
   }
 
   if (!mounted) return null

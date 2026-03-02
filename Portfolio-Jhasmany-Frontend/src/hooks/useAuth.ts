@@ -43,7 +43,7 @@ export const useAuth = () => {
   }
 
   const isAuthenticated = () => {
-    return !!user && authService.isAuthenticated()
+    return !!user
   }
 
   return {

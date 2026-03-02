@@ -12,7 +12,6 @@ const getBackendURL = () => {
 export async function GET() {
   try {
     const backendURL = getBackendURL()
-    console.log('Fetching home sections from backend API:', `${backendURL}/api/home`)
 
     const response = await fetch(`${backendURL}/api/home`, {
       cache: 'no-store',
@@ -25,7 +24,6 @@ export async function GET() {
     }
 
     const homeSections = await response.json()
-    console.log('Home sections received from backend:', Array.isArray(homeSections) ? homeSections.length : 'not an array')
 
     return NextResponse.json({ homeSections: homeSections || [] })
   } catch (error) {
@@ -62,7 +60,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const backendURL = getBackendURL()
 
-    console.log('Creating home section on backend:', body.greeting)
 
     const response = await fetch(`${backendURL}/api/home`, {
       method: 'POST',
@@ -79,7 +76,6 @@ export async function POST(request: Request) {
     }
 
     const result = await response.json()
-    console.log('Home section created successfully:', result)
 
     // Revalidate cache to show changes immediately on main page
     revalidateTag('home')

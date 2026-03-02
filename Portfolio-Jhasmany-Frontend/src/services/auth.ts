@@ -1,4 +1,3 @@
-import { apiClient } from '@/lib/api-client'
 import type { LoginFormData, RegisterFormData } from '@/schemas/auth.schema'
 
 export interface AuthResponse {
@@ -15,16 +14,28 @@ export interface AuthResponse {
 export const authService = {
   async login(data: LoginFormData): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post('auth/login', {
-        json: data,
-      }).json<AuthResponse>()
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      })
 
-      if (response.token) {
-        // Store token in localStorage (in a real app, consider more secure storage)
-        localStorage.setItem('auth_token', response.token)
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        return {
+          success: false,
+          message: payload.error || payload.message || 'Login failed. Please try again.',
+        }
       }
 
-      return response
+      return {
+        success: true,
+        message: payload.message || 'Login successful',
+        user: payload.user,
+      }
     } catch (error) {
       console.error('Login error:', error)
       return {
@@ -36,11 +47,27 @@ export const authService = {
 
   async register(data: Omit<RegisterFormData, 'confirmPassword'>): Promise<AuthResponse> {
     try {
-      const response = await apiClient.post('auth/register', {
-        json: data,
-      }).json<AuthResponse>()
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
 
-      return response
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        return {
+          success: false,
+          message: payload.error || payload.message || 'Registration failed. Please try again.',
+        }
+      }
+
+      return {
+        success: true,
+        message: payload.message || 'Registration successful',
+        user: payload.user,
+      }
     } catch (error) {
       console.error('Registration error:', error)
       return {
@@ -52,46 +79,38 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (token) {
-        await apiClient.post('auth/logout', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      }
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
     } catch (error) {
       console.error('Logout error:', error)
-    } finally {
-      localStorage.removeItem('auth_token')
     }
   },
 
   async getCurrentUser(): Promise<AuthResponse['user'] | null> {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) return null
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        return null
+      }
 
-      const response = await apiClient.get('auth/me', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }).json<{ user: AuthResponse['user'] }>()
-
-      return response.user
+      const payload = await response.json()
+      return payload.user || null
     } catch (error) {
       console.error('Get current user error:', error)
-      localStorage.removeItem('auth_token')
       return null
     }
   },
 
   getToken(): string | null {
-    if (typeof window === 'undefined') return null
-    return localStorage.getItem('auth_token')
+    return null
   },
 
   isAuthenticated(): boolean {
-    return !!this.getToken()
+    return false
   },
 }

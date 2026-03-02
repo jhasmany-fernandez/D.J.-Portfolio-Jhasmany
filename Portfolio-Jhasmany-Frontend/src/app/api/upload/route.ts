@@ -5,18 +5,15 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file');
 
-    console.log('[Upload API] Received file:', file ? (file as File).name : 'no file');
 
     // Forward the request to the backend
     const backendUrl = process.env.API_URL || 'http://backend:3001';
-    console.log('[Upload API] Forwarding to:', `${backendUrl}/api/upload/image`);
 
     const response = await fetch(`${backendUrl}/api/upload/image`, {
       method: 'POST',
       body: formData,
     });
 
-    console.log('[Upload API] Backend response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -28,7 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await response.json();
-    console.log('[Upload API] Upload successful:', result.url);
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Upload API] Upload proxy error:', error);

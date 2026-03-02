@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, BadRequestException } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
@@ -67,7 +67,7 @@ async function bootstrap() {
         const messages = errors.map(
           (error) => `${error.property}: ${Object.values(error.constraints || {}).join(', ')}`
         );
-        return new Error(`Validation failed: ${messages.join('; ')}`);
+        return new BadRequestException(`Validation failed: ${messages.join('; ')}`);
       },
     }),
   );

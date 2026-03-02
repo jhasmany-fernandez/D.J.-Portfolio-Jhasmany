@@ -12,10 +12,10 @@ export class HomeService {
     private homeSectionRepository: Repository<HomeSection>,
   ) {}
 
-  async create(createHomeDto: CreateHomeDto, authorId: string): Promise<HomeSection> {
+  async create(createHomeDto: CreateHomeDto, authorId?: string): Promise<HomeSection> {
     const homeSection = this.homeSectionRepository.create({
       ...createHomeDto,
-      authorId,
+      authorId: authorId ?? null,
     });
     return await this.homeSectionRepository.save(homeSection);
   }
