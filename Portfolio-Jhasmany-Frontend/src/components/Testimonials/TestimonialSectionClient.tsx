@@ -17,23 +17,9 @@ export default function TestimonialSectionClient({ initialTestimonials }: Testim
   )
 
   useEffect(() => {
-    // Fetch section subtitle
-    const fetchSubtitle = async () => {
-      try {
-        const response = await fetch('/api/testimonials-section')
-        if (response.ok) {
-          const data = await response.json()
-          setSubtitle(data.subtitle)
-        }
-      } catch (error) {
-        console.error('Error fetching subtitle:', error)
-      }
-    }
+    let isMounted = true
 
-    fetchSubtitle()
-
-    // Poll for updates every 5 seconds
-    const interval = setInterval(async () => {
+    const fetchData = async () => {
       try {
         const [testimonialsRes, sectionRes] = await Promise.all([
           fetch('/api/testimonials/published'),
@@ -43,19 +29,27 @@ export default function TestimonialSectionClient({ initialTestimonials }: Testim
         if (testimonialsRes.ok) {
           const data = await testimonialsRes.json()
           const freshTestimonials = Array.isArray(data) ? data : (data.testimonials || [])
-          setTestimonials(freshTestimonials)
+          if (isMounted) {
+            setTestimonials(freshTestimonials)
+          }
         }
 
         if (sectionRes.ok) {
           const sectionData = await sectionRes.json()
-          setSubtitle(sectionData.subtitle)
+          if (isMounted) {
+            setSubtitle(sectionData.subtitle)
+          }
         }
       } catch (error) {
-        console.error('Error fetching data:', error)
+        // Keep server-rendered testimonials if the client request is interrupted.
       }
-    }, 5000) // Update every 5 seconds
+    }
 
-    return () => clearInterval(interval)
+    fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return (

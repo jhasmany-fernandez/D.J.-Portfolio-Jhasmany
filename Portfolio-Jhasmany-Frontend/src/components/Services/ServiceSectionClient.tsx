@@ -36,23 +36,9 @@ export default function ServiceSectionClient({ initialServices }: ServiceSection
   )
 
   useEffect(() => {
-    // Fetch section subtitle
-    const fetchSubtitle = async () => {
-      try {
-        const response = await fetch('/api/services-section')
-        if (response.ok) {
-          const data = await response.json()
-          setSubtitle(data.subtitle)
-        }
-      } catch (error) {
-        console.error('Error fetching subtitle:', error)
-      }
-    }
+    let isMounted = true
 
-    fetchSubtitle()
-
-    // Poll for updates every 5 seconds
-    const interval = setInterval(async () => {
+    const fetchData = async () => {
       try {
         const [servicesRes, sectionRes] = await Promise.all([
           fetch('/api/services'),
@@ -63,19 +49,27 @@ export default function ServiceSectionClient({ initialServices }: ServiceSection
           const data = await servicesRes.json()
           const freshServices = Array.isArray(data) ? data : (data.services || [])
           const publishedServices = freshServices.filter((service: Service) => service.isPublished)
-          setServices(publishedServices)
+          if (isMounted) {
+            setServices(publishedServices)
+          }
         }
 
         if (sectionRes.ok) {
           const sectionData = await sectionRes.json()
-          setSubtitle(sectionData.subtitle)
+          if (isMounted) {
+            setSubtitle(sectionData.subtitle)
+          }
         }
       } catch (error) {
-        console.error('Error fetching data:', error)
+        // Keep server-rendered services if the client request is interrupted.
       }
-    }, 5000) // Update every 5 seconds
+    }
 
-    return () => clearInterval(interval)
+    fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return (

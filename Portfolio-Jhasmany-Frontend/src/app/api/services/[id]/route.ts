@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
 
 const getBackendCandidates = () => {
-  const normalizeHost = (url?: string) => url?.replace('://localhost', '://127.0.0.1')
-  const fromEnv = normalizeHost(process.env.API_URL)
-  const publicEnv = normalizeHost(process.env.NEXT_PUBLIC_API_URL)
-  const urls = ['http://127.0.0.1:3001', fromEnv, publicEnv, 'http://localhost:3001', 'http://backend:3001']
+  const urls = [
+    process.env.API_URL,
+    process.env.NEXT_PUBLIC_API_URL,
+    'http://backend:3001',
+    'http://localhost:3001',
+  ]
   return Array.from(new Set(urls.filter(Boolean))) as string[]
 }
 

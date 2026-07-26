@@ -12,21 +12,28 @@ export default function ProjectSectionClient({ initialProjects }: ProjectSection
   const [projects, setProjects] = useState<Project[]>(initialProjects)
 
   useEffect(() => {
-    // Poll for updates every 5 seconds
-    const interval = setInterval(async () => {
+    let isMounted = true
+
+    const fetchProjects = async () => {
       try {
         const response = await fetch('/api/projects')
         if (response.ok) {
           const data = await response.json()
           const freshProjects = Array.isArray(data) ? data : (data.projects || [])
-          setProjects(freshProjects)
+          if (isMounted) {
+            setProjects(freshProjects)
+          }
         }
       } catch (error) {
-        console.error('Error fetching projects:', error)
+        // Keep server-rendered projects if the client request is interrupted.
       }
-    }, 5000) // Update every 5 seconds
+    }
 
-    return () => clearInterval(interval)
+    fetchProjects()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return <ProjectSection projects={projects} />

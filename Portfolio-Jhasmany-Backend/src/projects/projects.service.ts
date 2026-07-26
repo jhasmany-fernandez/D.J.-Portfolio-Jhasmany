@@ -7,21 +7,48 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { UploadService } from '../upload/upload.service';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private projectsRepository: Repository<Project>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     private readonly uploadService: UploadService,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto, authorId: string): Promise<Project> {
+  async create(createProjectDto: CreateProjectDto, authorId?: string): Promise<Project> {
+    const resolvedAuthorId = authorId || (await this.findDefaultAuthorId());
     const project = this.projectsRepository.create({
       ...createProjectDto,
-      authorId,
+      authorId: resolvedAuthorId,
     });
     return this.projectsRepository.save(project);
+  }
+
+  private async findDefaultAuthorId(): Promise<string> {
+    const admin = await this.usersRepository.findOne({
+      where: { email: 'jhasmany.fernandez.dev@gmail.com' },
+      select: ['id'],
+    });
+
+    if (admin) {
+      return admin.id;
+    }
+
+    const fallbackUser = await this.usersRepository.findOne({
+      where: { isActive: true },
+      select: ['id'],
+      order: { createdAt: 'ASC' },
+    });
+
+    if (!fallbackUser) {
+      throw new NotFoundException('No active user found to assign as project author');
+    }
+
+    return fallbackUser.id;
   }
 
   async findAll(published?: boolean): Promise<Project[]> {

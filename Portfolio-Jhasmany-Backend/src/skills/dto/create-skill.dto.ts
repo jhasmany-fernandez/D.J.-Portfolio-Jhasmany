@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsBoolean, IsNumber, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-const STORED_IMAGE_URL_REGEX = /^$|^\/api\/images\/[0-9a-fA-F-]{36}$/;
+const IMAGE_URL_REGEX = /^$|^\/api\/images\/[0-9a-fA-F-]{36}$|^\/portfolio-assets\/[\w./-]+$/;
 
 export class CreateSkillDto {
   @ApiProperty({
@@ -27,8 +27,8 @@ export class CreateSkillDto {
   })
   @IsOptional()
   @IsString()
-  @Matches(STORED_IMAGE_URL_REGEX, {
-    message: 'imageUrl must be a stored image URL like /api/images/{uuid}',
+  @Matches(IMAGE_URL_REGEX, {
+    message: 'imageUrl must be a stored image URL like /api/images/{uuid} or a local asset URL like /portfolio-assets/file.png',
   })
   imageUrl?: string;
 

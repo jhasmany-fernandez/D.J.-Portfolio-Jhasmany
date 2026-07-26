@@ -19,23 +19,29 @@ export default function SkillsClient({ initialSkills }: SkillsClientProps) {
   const [skills, setSkills] = useState<Skill[]>(initialSkills)
 
   useEffect(() => {
-    // Poll for updates every 5 seconds
-    const interval = setInterval(async () => {
+    let isMounted = true
+
+    const fetchSkills = async () => {
       try {
         const response = await fetch('/api/skills')
         if (response.ok) {
           const data = await response.json()
           const freshSkills = Array.isArray(data) ? data : (data.skills || [])
-          // Filter only published skills
           const publishedSkills = freshSkills.filter((skill: Skill) => skill.isPublished)
-          setSkills(publishedSkills)
+          if (isMounted) {
+            setSkills(publishedSkills)
+          }
         }
       } catch (error) {
-        console.error('Error fetching skills:', error)
+        // Keep server-rendered skills if the client request is interrupted.
       }
-    }, 5000) // Update every 5 seconds
+    }
 
-    return () => clearInterval(interval)
+    fetchSkills()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Format skills for the Skills component

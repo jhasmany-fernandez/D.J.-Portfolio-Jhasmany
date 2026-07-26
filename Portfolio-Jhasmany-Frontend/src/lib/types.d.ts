@@ -1,11 +1,17 @@
 export interface Project {
   id?: string // Optional for API responses
   title: string
+  description?: string
   shortDescription: string
+  content?: string
+  technologies?: string[]
   priority: number
+  imageUrl?: string
   cover: string
+  demoUrl?: string
   livePreview?: string
   showLivePreviewInPortfolio?: boolean // Toggle to show/hide Live Preview in public portfolio
+  githubUrl?: string
   githubLink?: string
   showGithubInPortfolio?: boolean // Toggle to show/hide GitHub link in public portfolio
   visitors?: string
@@ -21,6 +27,12 @@ export interface Project {
   type: string
   siteAge?: string
   showSiteAgeInPortfolio?: boolean // Toggle to show/hide site age in public portfolio
+  order?: number
+  isPublished?: boolean
+  authorId?: string
+  author?: unknown
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Heading {

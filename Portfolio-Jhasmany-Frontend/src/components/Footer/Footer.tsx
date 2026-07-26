@@ -44,6 +44,8 @@ const normalizeLanguage = (value: string) => {
   })
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchFooterData = async () => {
       try {
         const response = await fetch('/api/footer', {
@@ -55,25 +57,24 @@ const normalizeLanguage = (value: string) => {
         if (response.ok) {
           const data = await response.json()
           // Parse availableLanguages if it's a string (from database)
-          const languages = typeof data.availableLanguages === 'string'
-            ? data.availableLanguages.split(',').filter((l: string) => l.trim())
-            : (Array.isArray(data.availableLanguages) ? data.availableLanguages : ['en', 'es'])
+        const languages = typeof data.availableLanguages === 'string'
+          ? data.availableLanguages.split(',').filter((l: string) => l.trim())
+          : (Array.isArray(data.availableLanguages) ? data.availableLanguages : ['en', 'es'])
 
-          setFooterData({ ...data, availableLanguages: languages })
+          if (isMounted) {
+            setFooterData({ ...data, availableLanguages: languages })
+          }
         }
       } catch (error) {
-        console.error('Error fetching footer data:', error)
+        // Keep the fallback footer visible when the dev server restarts or a request is interrupted.
       }
     }
 
-    // Fetch on mount
     fetchFooterData()
 
-    // Set up an interval to refetch footer data every 30 seconds
-    const intervalId = setInterval(fetchFooterData, 30000)
-
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId)
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const hasSocialLinks = Boolean(

@@ -22,15 +22,16 @@ export default function HeroClient({ initialHomeSection }: HeroClientProps) {
   const [homeSection, setHomeSection] = useState<HomeSection | null>(initialHomeSection)
 
   useEffect(() => {
-    // Poll for updates every 5 seconds
-    const interval = setInterval(async () => {
+    let isMounted = true
+
+    const fetchHomeSection = async () => {
       try {
         const response = await fetch('/api/home')
         if (response.ok) {
           const data = await response.json()
           const sections = data.homeSections || []
           const activeSection = sections.find((s: any) => s.isActive) || sections[0]
-          if (activeSection) {
+          if (activeSection && isMounted) {
             setHomeSection({
               greeting: activeSection.greeting,
               roles: activeSection.roles,
@@ -44,11 +45,15 @@ export default function HeroClient({ initialHomeSection }: HeroClientProps) {
           }
         }
       } catch (error) {
-        console.error('Error fetching home section:', error)
+        // Keep server-rendered content if the client request is interrupted.
       }
-    }, 5000) // Update every 5 seconds
+    }
 
-    return () => clearInterval(interval)
+    fetchHomeSection()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   return (

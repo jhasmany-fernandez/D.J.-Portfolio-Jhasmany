@@ -1,7 +1,7 @@
 import { IsString, IsArray, IsOptional, IsBoolean, IsNumber, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-const STORED_IMAGE_URL_REGEX = /^$|^\/api\/images\/[0-9a-fA-F-]{36}$/;
+const IMAGE_URL_REGEX = /^$|^\/api\/images\/[0-9a-fA-F-]{36}$|^\/portfolio-assets\/[\w./-]+$/;
 
 export class CreateProjectDto {
   @ApiProperty({
@@ -55,8 +55,8 @@ export class CreateProjectDto {
   })
   @IsOptional()
   @IsString()
-  @Matches(STORED_IMAGE_URL_REGEX, {
-    message: 'imageUrl must be a stored image URL like /api/images/{uuid}',
+  @Matches(IMAGE_URL_REGEX, {
+    message: 'imageUrl must be a stored image URL like /api/images/{uuid} or a local asset URL like /portfolio-assets/file.png',
   })
   imageUrl?: string;
 
@@ -67,8 +67,8 @@ export class CreateProjectDto {
   })
   @IsOptional()
   @IsString()
-  @Matches(STORED_IMAGE_URL_REGEX, {
-    message: 'cover must be a stored image URL like /api/images/{uuid}',
+  @Matches(IMAGE_URL_REGEX, {
+    message: 'cover must be a stored image URL like /api/images/{uuid} or a local asset URL like /portfolio-assets/file.png',
   })
   cover?: string;
 
