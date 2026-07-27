@@ -17,7 +17,8 @@ interface StoredImage {
   url: string
 }
 
-const STORED_IMAGE_URL_REGEX = /^\/api\/images\/[0-9a-fA-F-]{36}$/
+const STORED_IMAGE_URL_REGEX =
+  /^\/api\/images\/[0-9a-fA-F-]{36}$|^\/portfolio-assets\/[\w./%-]+$/
 
 const sanitizeStoredImageUrl = (value?: string | null) => {
   const normalized = (value || '').trim()
@@ -437,7 +438,12 @@ export default function ProjectsPage() {
         >
           + Nuevo Proyecto
         </button>
-        <button className="bg-secondary hover:bg-secondary/80 text-primary-content border border-border px-4 py-2 rounded-lg transition-colors duration-200">
+        <button
+          onClick={() => {
+            fetchProjects()
+            toast.success('Lista de proyectos actualizada')
+          }}
+          className="bg-secondary hover:bg-secondary/80 text-primary-content border border-border px-4 py-2 rounded-lg transition-colors duration-200">
           Actualizar Cache
         </button>
       </div>

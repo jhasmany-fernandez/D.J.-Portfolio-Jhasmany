@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 // Use Docker service name for internal communication (SSR)
 const getBackendURL = () => {
@@ -70,6 +70,7 @@ export async function PUT(
 
     // Invalidate the projects cache to show updates immediately
     revalidateTag('projects')
+    revalidatePath('/', 'page')
 
     return NextResponse.json(result)
   } catch (error) {
@@ -105,6 +106,7 @@ export async function DELETE(
 
     // Invalidate the projects cache to show updates immediately
     revalidateTag('projects')
+    revalidatePath('/', 'page')
 
     return NextResponse.json({ message: 'Project deleted successfully' })
   } catch (error) {

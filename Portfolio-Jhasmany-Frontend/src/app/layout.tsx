@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title,
   description,
   category: 'technology',
+  other: {
+    google: 'notranslate',
+  },
   metadataBase: new URL(url),
   alternates: {
     canonical: url,
@@ -45,8 +48,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme="dark"
+      className="notranslate"
+      translate="no"
+      suppressHydrationWarning>
+      <body className="notranslate" translate="no" suppressHydrationWarning>
         <LanguageProvider>
           <NavigationWrapper />
           {children}

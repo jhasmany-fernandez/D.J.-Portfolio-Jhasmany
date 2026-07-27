@@ -1,5 +1,5 @@
 'use client'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef } from 'react'
 
 type MarqueeWrapperProps = {
   children: ReactNode
@@ -26,20 +26,27 @@ const marqueeAnimation: MarqueeAnimationType = (element, elementWidth, windowWid
 
 const MarqueeWrapper: React.FC<MarqueeWrapperProps> = ({ children, className = '' }) => {
   const elementRef = useRef<HTMLDivElement>(null)
-  const [windowWidth, setWindowWidth] = useState(0)
 
   useEffect(() => {
-    setWindowWidth(window.innerWidth)
+    const animateMarquee = () => {
+      if (!elementRef.current) {
+        return
+      }
 
-    if (elementRef.current) {
+      elementRef.current.getAnimations().forEach(animation => animation.cancel())
       const elementWidth = elementRef.current.getBoundingClientRect().width
-      marqueeAnimation(elementRef.current as HTMLElement, elementWidth, windowWidth)
+      marqueeAnimation(elementRef.current, elementWidth, window.innerWidth)
     }
 
-    const handleResize = () => setWindowWidth(window.innerWidth)
+    animateMarquee()
+
+    const handleResize = () => animateMarquee()
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [windowWidth])
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      elementRef.current?.getAnimations().forEach(animation => animation.cancel())
+    }
+  }, [])
 
   return (
     <div className={`relative overflow-x-hidden ${className}`}>

@@ -90,8 +90,10 @@ export default function HomePage() {
 
   const extractImageIdFromUrl = (url?: string | null) => {
     if (!url) return null
-    const match = url.match(/\/api\/images\/([0-9a-fA-F-]{36})/)
-    return match ? match[1] : null
+    const legacyMatch = url.match(/\/api\/images\/([0-9a-fA-F-]{36})/)
+    if (legacyMatch) return legacyMatch[1]
+    const assetMatch = url.match(/\/portfolio-assets\/uploads\/([^/?#]+)/)
+    return assetMatch ? decodeURIComponent(assetMatch[1]) : null
   }
 
   const addUsage = (

@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: portfolio_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Postgres2307***
-    ports:
-      - "5432:5432"
     volumes:
       - portfolio_db_data:/var/lib/postgresql/data
     healthcheck:
@@ -41,10 +39,12 @@ services:
       EMAIL_FROM: your_email@gmail.com
       EMAIL_FROM_NAME: Portfolio
       FRONTEND_URL: http://localhost
+      UPLOAD_DIR: /app/public-uploads
     ports:
       - "3001:3001"
     volumes:
       - ./Portfolio-Jhasmany-Backend:/app
+      - ./Portfolio-Jhasmany-Frontend/public/portfolio-assets/uploads:/app/public-uploads
       - /app/node_modules
     depends_on:
       db:

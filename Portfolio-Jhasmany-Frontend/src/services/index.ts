@@ -1,50 +1,79 @@
 import { Project, Testimonial } from '@/lib/types'
-import { promises as fs } from 'fs'
-import { unstable_cache } from 'next/cache'
-import path from 'path'
 
-// Note: fs and path imports still needed for testimonials
+type ApiDataResolver<T> = (data: any) => T
+
+const normalizeApiUrl = (url?: string | null) => url?.trim().replace(/\/$/, '')
+
+const getApiBaseUrls = () => {
+  const isServer = typeof window === 'undefined'
+  const candidates = isServer
+    ? [
+        process.env.API_URL,
+        'http://backend:3001',
+        process.env.NEXT_PUBLIC_API_URL,
+        'http://localhost:3001',
+      ]
+    : [
+        process.env.NEXT_PUBLIC_SITE_URL,
+        process.env.NEXT_PUBLIC_API_URL,
+        'http://localhost:3001',
+      ]
+
+  return Array.from(
+    new Set(candidates.map(normalizeApiUrl).filter(Boolean) as string[])
+  )
+}
+
+const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return String(error)
+}
+
+const fetchApiData = async <T>(
+  endpoint: string,
+  label: string,
+  resolveData: ApiDataResolver<T>,
+  fallback: T
+): Promise<T> => {
+  let lastError = 'Unknown error'
+
+  for (const apiUrl of getApiBaseUrls()) {
+    try {
+      const response = await fetch(`${apiUrl}${endpoint}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        lastError = `HTTP ${response.status}`
+        continue
+      }
+
+      const data = await response.json()
+      return resolveData(data)
+    } catch (error) {
+      lastError = getErrorMessage(error)
+    }
+  }
+
+  console.warn(`[${label}] API unavailable at ${endpoint}. Returning fallback. Last error: ${lastError}`)
+  return fallback
+}
 
 // Internal function to fetch all projects from API
 const fetchAllProjectsFromAPI = async (): Promise<Project[]> => {
-  try {
-    // Check if we're running server-side (inside Docker container)
-    const isServer = typeof window === 'undefined'
-
-    // Server-side: call backend directly using Docker service name
-    // Client-side: use the frontend's API route proxy
-    const apiUrl = isServer
-      ? (process.env.API_URL || 'http://backend:3001')  // Direct backend call during SSR
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002') // Frontend proxy for client
-
-
-    const response = await fetch(`${apiUrl}/api/projects`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store' // Always get fresh data for SSR
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[fetchAllProjectsFromAPI] API error:', response.status, errorText)
-      throw new Error(`API responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-
-    // Handle different response formats:
-    // - Backend returns array directly: [{...}]
-    // - Frontend API route returns object: {projects: [{...}]}
-    const projects = Array.isArray(data) ? data : (data.projects || [])
-
-    return projects
-  } catch (error) {
-    console.error('[fetchAllProjectsFromAPI] Fatal error - NO FALLBACK:', error)
-    // NO FALLBACK - Force using the database
-    return []
-  }
+  return fetchApiData<Project[]>(
+    '/api/projects',
+    'Projects',
+    (data) => Array.isArray(data) ? data : (data.projects || []),
+    []
+  )
 }
 
 // REMOVED: Fallback function - We now always use the database
@@ -55,46 +84,15 @@ const getAllProjects = fetchAllProjectsFromAPI
 
 // Internal function to fetch all services from API
 const fetchAllServicesFromAPI = async (): Promise<any[]> => {
-  try {
-    // Check if we're running server-side (inside Docker container)
-    const isServer = typeof window === 'undefined'
-
-    // Server-side: call backend directly using Docker service name
-    // Client-side: use the frontend's API route proxy
-    const apiUrl = isServer
-      ? (process.env.API_URL || 'http://backend:3001')  // Direct backend call during SSR
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002') // Frontend proxy for client
-
-
-    const response = await fetch(`${apiUrl}/api/services`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store' // Always get fresh data for SSR
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[fetchAllServicesFromAPI] API error:', response.status, errorText)
-      throw new Error(`API responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-
-    // Handle different response formats:
-    // - Backend returns array directly: [{...}]
-    // - Frontend API route returns object: {services: [{...}]}
-    const services = Array.isArray(data) ? data : (data.services || [])
-
-    // Filter only published services
-    const publishedServices = services.filter((service: any) => service.isPublished)
-
-    return publishedServices
-  } catch (error) {
-    console.error('[fetchAllServicesFromAPI] Fatal error - NO FALLBACK:', error)
-    return []
-  }
+  return fetchApiData<any[]>(
+    '/api/services',
+    'Services',
+    (data) => {
+      const services = Array.isArray(data) ? data : (data.services || [])
+      return services.filter((service: any) => service.isPublished)
+    },
+    []
+  )
 }
 
 // NO CACHE - Always fetch fresh data from database
@@ -102,33 +100,12 @@ const getAllServices = fetchAllServicesFromAPI
 
 // Internal function to fetch all testimonials from API
 const fetchAllTestimonialsFromAPI = async (): Promise<Testimonial[]> => {
-  try {
-    const isServer = typeof window === 'undefined'
-    const apiUrl = isServer
-      ? (process.env.API_URL || 'http://backend:3001')
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002')
-
-
-    const response = await fetch(`${apiUrl}/api/testimonials/published`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      cache: 'no-store'
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[fetchAllTestimonialsFromAPI] API error:', response.status, errorText)
-      throw new Error(`API responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    const testimonials = Array.isArray(data) ? data : (data.testimonials || [])
-
-    return testimonials
-  } catch (error) {
-    console.error('[fetchAllTestimonialsFromAPI] Fatal error - NO FALLBACK:', error)
-    return []
-  }
+  return fetchApiData<Testimonial[]>(
+    '/api/testimonials/published',
+    'Testimonials',
+    (data) => Array.isArray(data) ? data : (data.testimonials || []),
+    []
+  )
 }
 
 // NO CACHE - Always fetch fresh data from database
@@ -136,34 +113,15 @@ const getAllTestimonials = fetchAllTestimonialsFromAPI
 
 // Internal function to fetch all skills from API
 const fetchAllSkillsFromAPI = async (): Promise<any[]> => {
-  try {
-    const isServer = typeof window === 'undefined'
-    const apiUrl = isServer
-      ? (process.env.API_URL || 'http://backend:3001')
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002')
-
-
-    const response = await fetch(`${apiUrl}/api/skills`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      cache: 'no-store'
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[fetchAllSkillsFromAPI] API error:', response.status, errorText)
-      throw new Error(`API responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    const skills = Array.isArray(data) ? data : (data.skills || [])
-    const publishedSkills = skills.filter((skill: any) => skill.isPublished)
-
-    return publishedSkills
-  } catch (error) {
-    console.error('[fetchAllSkillsFromAPI] Fatal error - NO FALLBACK:', error)
-    return []
-  }
+  return fetchApiData<any[]>(
+    '/api/skills',
+    'Skills',
+    (data) => {
+      const skills = Array.isArray(data) ? data : (data.skills || [])
+      return skills.filter((skill: any) => skill.isPublished)
+    },
+    []
+  )
 }
 
 const getAllSkills = fetchAllSkillsFromAPI

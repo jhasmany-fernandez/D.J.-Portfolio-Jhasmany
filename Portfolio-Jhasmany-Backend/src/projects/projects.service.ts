@@ -89,16 +89,33 @@ export class ProjectsService {
   async update(id: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
     // Get existing project to check for old images
     const existingProject = await this.findOne(id);
+    const normalizedUpdate = { ...updateProjectDto };
+
+    if (normalizedUpdate.imageUrl === '' && existingProject.imageUrl) {
+      normalizedUpdate.imageUrl = existingProject.imageUrl;
+    }
+
+    if (normalizedUpdate.cover === '' && existingProject.cover) {
+      normalizedUpdate.cover = existingProject.cover;
+    }
 
     // Delete old images if new ones are provided
-    if (updateProjectDto.imageUrl && existingProject.imageUrl) {
+    if (
+      normalizedUpdate.imageUrl &&
+      existingProject.imageUrl &&
+      normalizedUpdate.imageUrl !== existingProject.imageUrl
+    ) {
       await this.deleteImageFile(existingProject.imageUrl);
     }
-    if (updateProjectDto.cover && existingProject.cover) {
+    if (
+      normalizedUpdate.cover &&
+      existingProject.cover &&
+      normalizedUpdate.cover !== existingProject.cover
+    ) {
       await this.deleteImageFile(existingProject.cover);
     }
 
-    await this.projectsRepository.update(id, updateProjectDto);
+    await this.projectsRepository.update(id, normalizedUpdate);
     return this.findOne(id);
   }
 

@@ -79,7 +79,7 @@ export default function ServiceSectionClient({ initialServices }: ServiceSection
         subtitle={subtitle}
       />
 
-      <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 md:mt-[3.75rem] md:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 md:mt-[3.75rem] md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[2200px]:grid-cols-5">
         {services.length === 0 ? (
           <div className="col-span-3 text-center py-12">
             <p className="text-tertiary-content">No services available at the moment.</p>

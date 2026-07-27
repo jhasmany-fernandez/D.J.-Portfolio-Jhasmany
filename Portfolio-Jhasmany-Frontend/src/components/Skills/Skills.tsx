@@ -1,8 +1,6 @@
 'use client'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
-
-const MarqueeWrapper = dynamic(() => import('../Marquee/MarqueeWrapper'), { ssr: false })
+import MarqueeWrapper from '../Marquee/MarqueeWrapper'
 
 type SkillsProps = {
   skills: { name: string; icon: string }[]

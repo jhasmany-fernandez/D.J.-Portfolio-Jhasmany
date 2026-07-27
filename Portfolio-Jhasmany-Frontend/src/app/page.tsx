@@ -32,11 +32,13 @@ async function getActiveHomeSection() {
       }
       return data
     } catch (parseError) {
-      console.error('Error parsing home section JSON:', parseError)
+      const message = parseError instanceof Error ? parseError.message : String(parseError)
+      console.warn(`[Home] Invalid home section JSON: ${message}`)
       return null
     }
   } catch (error) {
-    console.error('Error fetching active home section:', error)
+    const message = error instanceof Error ? error.message : String(error)
+    console.warn(`[Home] Active home section unavailable: ${message}`)
     return null
   }
 }
@@ -52,7 +54,7 @@ export default async function Home() {
     <main>
       <HeroClient initialHomeSection={homeSection} />
       <SkillsClient initialSkills={skills} />
-      <div className="mx-auto my-8 max-w-[1200px] px-4 md:my-[3.75rem]">
+      <div className="my-8 w-full px-[clamp(1rem,3vw,4rem)] md:my-[3.75rem]">
         <ProjectSectionClient initialProjects={projects} />
         <ServiceSectionClient initialServices={services} />
         <TestimonialSectionClient initialTestimonials={testimonials} />

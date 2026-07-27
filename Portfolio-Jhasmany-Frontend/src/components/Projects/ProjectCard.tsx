@@ -51,8 +51,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
   } = data
 
   return (
-    <div className="bg-secondary border-border flex flex-col justify-between rounded-[14px] border p-5">
-      <div className="flex items-start justify-between gap-2">
+    <div className="bg-secondary border-border flex min-h-[18rem] flex-col justify-between rounded-[14px] border p-5 sm:p-6 lg:p-7">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex flex-col flex-wrap gap-3 sm:flex-row sm:items-center">
             <h3 className="text-secondary-content text-lg font-medium md:font-semibold">{title}</h3>
@@ -85,20 +85,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
           </ul>
         </div>
         {cover && (
-          <figure className="flex justify-end overflow-hidden cursor-pointer" onClick={() => setIsImageOpen(true)}>
+          <figure className="flex shrink-0 cursor-pointer justify-end overflow-hidden" onClick={() => setIsImageOpen(true)}>
             <Image
               src={cover}
-              width={150}
-              height={80}
+              width={240}
+              height={132}
               alt="Project Cover"
-              className="h-[80px] w-[150px] rounded-md object-cover shadow-[0px_1.66px_3.74px_-1.25px_#18274B1F] hover:opacity-80 transition-opacity"
+              className="h-20 w-[150px] rounded-md object-cover shadow-[0px_1.66px_3.74px_-1.25px_#18274B1F] transition-opacity hover:opacity-80 sm:h-24 sm:w-44 lg:h-[132px] lg:w-60"
             />
           </figure>
         )}
       </div>
 
       <div>
-        <div className="bg-primary text-primary-content my-4 h-[100px] overflow-scroll rounded-2xl px-4 py-2">
+        <div className="bg-primary text-primary-content my-5 min-h-[120px] overflow-auto rounded-2xl px-4 py-3 lg:px-5">
           <p className="text-[14px] font-normal md:text-base">{shortDescription}</p>
         </div>
         <div className="flex gap-5">

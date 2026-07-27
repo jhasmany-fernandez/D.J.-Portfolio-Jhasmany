@@ -8,7 +8,6 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
-  ParseUUIDPipe,
   Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -66,11 +65,10 @@ export class UploadController {
     }
 
     const storedImage = await this.uploadService.createImage(file);
-    const imageUrl = `/api/images/${storedImage.id}`;
 
     return {
       success: true,
-      url: imageUrl,
+      url: storedImage.url,
       imageId: storedImage.id,
       originalName: storedImage.originalName,
     };
@@ -78,7 +76,7 @@ export class UploadController {
 
   @Get('image/:id')
   async getImageById(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Res() res: Response,
   ) {
     const image = await this.uploadService.getImageById(id);
@@ -96,12 +94,12 @@ export class UploadController {
       mimeType: image.mimeType,
       size: image.size,
       createdAt: image.createdAt,
-      url: `/api/images/${image.id}`,
+      url: image.url,
     }));
   }
 
   @Delete('image/:id')
-  async deleteImageById(@Param('id', ParseUUIDPipe) id: string) {
+  async deleteImageById(@Param('id') id: string) {
     const deleted = await this.uploadService.deleteImageById(id);
     if (!deleted) {
       throw new NotFoundException(`Image with ID ${id} not found`);

@@ -1,6 +1,6 @@
 import { Project } from '@/lib/types'
 import { NextResponse } from 'next/server'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 // Use Docker service name for internal communication (SSR)
 // Fall back to localhost for client-side or development
@@ -75,6 +75,7 @@ export async function POST(request: Request) {
 
     // Invalidate the projects cache to show new project immediately
     revalidateTag('projects')
+    revalidatePath('/', 'page')
 
     return NextResponse.json({
       message: 'Project created successfully',

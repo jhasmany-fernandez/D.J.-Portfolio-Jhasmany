@@ -94,7 +94,7 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-primary border-border h-16 overflow-visible border-b">
-      <div className="mx-auto flex h-full w-dvw max-w-[1200px] items-center justify-between px-4 py-1">
+      <div className="flex h-full w-dvw items-center justify-between px-[clamp(1rem,3vw,4rem)] py-1">
         <Link href="/">
           <div className="animate-fade-up text-primary-content relative flex items-center gap-3 transition-all duration-300 md:static">
             <Logo />
@@ -135,7 +135,7 @@ const Navbar = () => {
               ))}
             </ul>
 
-            <ul className="hidden h-full w-[72%] md:flex md:flex-row lg:w-[70%]">
+            <ul className="hidden h-full w-[74%] md:flex md:flex-row 2xl:w-[78%]">
               {navItems.map(({ label, href }) => (
                 <li
                   key={`desktop-${href}`}
