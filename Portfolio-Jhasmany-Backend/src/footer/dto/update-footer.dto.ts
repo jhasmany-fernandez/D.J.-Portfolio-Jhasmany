@@ -50,6 +50,11 @@ export class UpdateFooterDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  whatsappNumber?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   twitterUrl?: string;
 
   @ApiProperty({ required: false })

@@ -40,6 +40,9 @@ export class Footer {
   codepenUrl: string;
 
   @Column({ nullable: true, default: '' })
+  whatsappNumber: string;
+
+  @Column({ nullable: true, default: '' })
   twitterUrl: string;
 
   @Column({ nullable: true, default: '' })

@@ -25,6 +25,7 @@ export class FooterService {
         phone: '+591 65856280',
         locationLine1: 'Santa Cruz de la Sierra',
         locationLine2: 'Bolivia',
+        whatsappNumber: '59165856280',
         isActive: true,
       });
       return await this.footerRepository.save(defaultFooter);

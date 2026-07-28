@@ -13,7 +13,7 @@ interface FooterData {
   locationLine2: string
   githubUrl?: string
   linkedinUrl?: string
-  codepenUrl?: string
+  whatsappNumber?: string
   twitterUrl?: string
   instagramUrl?: string
   facebookUrl?: string
@@ -35,7 +35,7 @@ export default function FooterPage() {
     locationLine2: '',
     githubUrl: '',
     linkedinUrl: '',
-    codepenUrl: '',
+    whatsappNumber: '',
     twitterUrl: '',
     instagramUrl: '',
     facebookUrl: '',
@@ -63,7 +63,7 @@ export default function FooterPage() {
           locationLine2: data.locationLine2,
           githubUrl: data.githubUrl || '',
           linkedinUrl: data.linkedinUrl || '',
-          codepenUrl: data.codepenUrl || '',
+          whatsappNumber: data.whatsappNumber || '',
           twitterUrl: data.twitterUrl || '',
           instagramUrl: data.instagramUrl || '',
           facebookUrl: data.facebookUrl || '',
@@ -92,12 +92,17 @@ export default function FooterPage() {
 
     setSaving(true)
     try {
+      const payload = {
+        ...formData,
+        whatsappNumber: (formData.whatsappNumber || '').replace(/\D/g, ''),
+      }
+
       const response = await fetch(`/api/footer/${footerData.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -269,7 +274,7 @@ export default function FooterPage() {
             Redes Sociales
           </h2>
           <p className="text-sm text-tertiary-content mb-4">
-            Configura los enlaces a tus redes sociales. Los iconos solo aparecerán si ingresas una URL.
+            Configura los enlaces a tus redes sociales. Los iconos solo aparecerán si ingresas datos.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -305,16 +310,19 @@ export default function FooterPage() {
 
             <div>
               <label className="block text-sm font-medium text-primary-content mb-2">
-                CodePen
+                WhatsApp
               </label>
               <input
-                type="url"
-                value={formData.codepenUrl || ''}
+                type="tel"
+                value={formData.whatsappNumber || ''}
                 onChange={(e) =>
-                  setFormData({ ...formData, codepenUrl: e.target.value })
+                  setFormData({
+                    ...formData,
+                    whatsappNumber: e.target.value.replace(/\D/g, ''),
+                  })
                 }
                 className="w-full px-4 py-2 bg-primary border border-border rounded-lg text-primary-content focus:outline-none focus:ring-2 focus:ring-accent"
-                placeholder="https://codepen.io/tu-usuario"
+                placeholder="59165856280"
               />
             </div>
 

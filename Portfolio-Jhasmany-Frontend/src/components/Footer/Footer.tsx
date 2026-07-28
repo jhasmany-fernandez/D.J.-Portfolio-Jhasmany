@@ -3,7 +3,7 @@
 import { useLanguage, type Language } from '@/contexts/LanguageContext'
 import { useEffect, useState } from 'react'
 import Logo from '../Navbar/Logo'
-import { Codepen, Facebook, GithubIcon, Instagram, LinkedIn, X } from '@/utils/icons'
+import { Facebook, GithubIcon, Instagram, LinkedIn, WhatsAppIcon, X } from '@/utils/icons'
 
 interface FooterData {
   companyName: string
@@ -14,7 +14,7 @@ interface FooterData {
   locationLine2: string
   githubUrl?: string
   linkedinUrl?: string
-  codepenUrl?: string
+  whatsappNumber?: string
   twitterUrl?: string
   instagramUrl?: string
   facebookUrl?: string
@@ -26,6 +26,8 @@ const normalizeLanguage = (value: string) => {
   if (lower === 'es') return 'Es'
   return 'En'
 }
+
+const sanitizePhoneNumber = (value?: string) => (value || '').replace(/\D/g, '')
 
   const Footer = () => {
   const { currentLanguage, setLanguage, t } = useLanguage()
@@ -75,11 +77,14 @@ const normalizeLanguage = (value: string) => {
   const hasSocialLinks = Boolean(
     footerData.githubUrl ||
       footerData.linkedinUrl ||
-      footerData.codepenUrl ||
       footerData.twitterUrl ||
       footerData.instagramUrl ||
-      footerData.facebookUrl,
+      footerData.facebookUrl ||
+      sanitizePhoneNumber(footerData.whatsappNumber),
   )
+
+  const whatsappNumber = sanitizePhoneNumber(footerData.whatsappNumber)
+  const phoneWhatsappNumber = sanitizePhoneNumber(footerData.phone)
 
   return (
     <footer className="bg-secondary relative overflow-hidden px-4 py-10 md:px-12 md:py-12">
@@ -140,17 +145,6 @@ const normalizeLanguage = (value: string) => {
                 </a>
               </li>
             )}
-            {footerData.codepenUrl && (
-              <li className="cursor-pointer bg-transparent">
-                <a
-                  href={footerData.codepenUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-neutral transition-color hover:text-neutral/50 h-full w-full duration-300">
-                  <Codepen />
-                </a>
-              </li>
-            )}
             {footerData.twitterUrl && (
               <li className="cursor-pointer bg-transparent">
                 <a
@@ -184,6 +178,17 @@ const normalizeLanguage = (value: string) => {
                 </a>
               </li>
             )}
+            {whatsappNumber && (
+              <li className="cursor-pointer bg-transparent">
+                <a
+                  href={`https://wa.me/${whatsappNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-neutral transition-color hover:text-neutral/50 h-full w-full duration-300">
+                  <WhatsAppIcon />
+                </a>
+              </li>
+            )}
           </ul>
           )}
           <p className="text-tertiary-content flex flex-col text-xs leading-5">
@@ -202,7 +207,9 @@ const normalizeLanguage = (value: string) => {
                 {footerData.email}
               </a>
               <a
-                href={`tel:${footerData.phone}`}
+                href={phoneWhatsappNumber ? `https://wa.me/${phoneWhatsappNumber}` : `tel:${footerData.phone}`}
+                target={phoneWhatsappNumber ? '_blank' : undefined}
+                rel={phoneWhatsappNumber ? 'noopener noreferrer' : undefined}
                 className="text-tertiary-content hover:text-neutral text-sm transition-colors duration-300">
                 {footerData.phone}
               </a>
