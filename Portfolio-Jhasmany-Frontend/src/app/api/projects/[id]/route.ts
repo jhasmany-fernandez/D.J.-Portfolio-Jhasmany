@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { getAuthHeader } from '../../auth/_utils'
 
 // Use Docker service name for internal communication (SSR)
 const getBackendURL = () => {
@@ -47,15 +48,14 @@ export async function PUT(
     const { id } = await params
     const body = await request.json()
     const backendURL = getBackendURL()
+    const authHeader = await getAuthHeader()
 
 
-    // TODO: Add authentication token from session
     const response = await fetch(`${backendURL}/api/projects/${id}`, {
       method: 'PATCH', // NestJS uses PATCH for partial updates
       headers: {
         'Content-Type': 'application/json',
-        // TODO: Add Authorization header with JWT token
-        // 'Authorization': `Bearer ${token}`,
+        ...authHeader,
       },
       body: JSON.stringify(body),
     })
@@ -88,13 +88,12 @@ export async function DELETE(
   try {
     const { id } = await params
     const backendURL = getBackendURL()
+    const authHeader = await getAuthHeader()
 
-    // TODO: Add authentication token from session
     const response = await fetch(`${backendURL}/api/projects/${id}`, {
       method: 'DELETE',
       headers: {
-        // TODO: Add Authorization header with JWT token
-        // 'Authorization': `Bearer ${token}`,
+        ...authHeader,
       },
     })
 

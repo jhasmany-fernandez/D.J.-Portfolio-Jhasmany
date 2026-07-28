@@ -18,6 +18,7 @@ import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { GoogleOAuthDto } from './dto/google-oauth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Authentication')
@@ -46,6 +47,15 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'User already exists' })
   async register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
+  }
+
+  @Post('google/callback')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 300000 } })
+  @ApiOperation({ summary: 'Exchange Google OAuth code for portfolio session' })
+  @ApiResponse({ status: 200, description: 'Google login successful' })
+  async googleCallback(@Body() googleOAuthDto: GoogleOAuthDto) {
+    return this.authService.loginWithGoogle(googleOAuthDto);
   }
 
   @Get('me')

@@ -12,11 +12,29 @@ export class CreateServiceDto {
   title: string;
 
   @ApiProperty({
+    description: 'Service title in Spanish',
+    example: 'Desarrollo JavaScript',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  titleEs?: string;
+
+  @ApiProperty({
     description: 'Short description of the service',
     example: 'Creating dynamic and interactive web applications using JavaScript.',
   })
   @IsString()
   shortDescription: string;
+
+  @ApiProperty({
+    description: 'Short description of the service in Spanish',
+    example: 'Creacion de aplicaciones web dinamicas e interactivas usando JavaScript.',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  shortDescriptionEs?: string;
 
   @ApiProperty({
     description: 'Icon identifier or name',

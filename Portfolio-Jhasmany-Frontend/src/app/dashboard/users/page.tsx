@@ -13,6 +13,7 @@ export default function UsersPage() {
   const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [currentRole, setCurrentRole] = useState<string | null>(null)
 
   useEffect(() => {
     const checkSession = async () => {
@@ -21,6 +22,14 @@ export default function UsersPage() {
         router.push('/auth/login')
         return
       }
+
+      setCurrentRole(currentUser.role)
+      if (!['admin', 'visitor'].includes(currentUser.role)) {
+        setError(`Tu perfil actual (${currentUser.role}) no tiene permiso para administrar usuarios.`)
+        setLoading(false)
+        return
+      }
+
       loadUsers()
     }
     checkSession()
@@ -34,7 +43,12 @@ export default function UsersPage() {
       setUsers(data)
     } catch (err) {
       console.error('Error loading users:', err)
-      setError('Error al cargar los usuarios. Por favor, verifica tu autenticación.')
+      const message = err instanceof Error ? err.message : ''
+      setError(
+        message.includes('403')
+          ? `Tu perfil actual (${currentRole || 'desconocido'}) no tiene permiso para administrar usuarios. Entra con admin o visitor.`
+          : 'Error al cargar los usuarios. Por favor, verifica tu autenticación.'
+      )
     } finally {
       setLoading(false)
     }

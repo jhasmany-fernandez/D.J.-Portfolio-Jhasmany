@@ -17,11 +17,20 @@ export class HomeSection {
   @Column()
   greeting: string;
 
+  @Column({ nullable: true })
+  greetingEs: string;
+
   @Column('simple-array')
   roles: string[];
 
+  @Column('simple-array', { nullable: true })
+  rolesEs: string[];
+
   @Column()
   description: string;
+
+  @Column({ nullable: true })
+  descriptionEs: string;
 
   @Column({ nullable: true })
   imageUrl: string;
@@ -29,11 +38,17 @@ export class HomeSection {
   @Column({ default: 'Acceso Personal' })
   primaryButtonText: string;
 
+  @Column({ nullable: true })
+  primaryButtonTextEs: string;
+
   @Column({ default: '/auth/login' })
   primaryButtonUrl: string;
 
   @Column({ default: 'Newsletter Clientes' })
   secondaryButtonText: string;
+
+  @Column({ nullable: true })
+  secondaryButtonTextEs: string;
 
   @Column({ default: '/newsletter/subscribe' })
   secondaryButtonUrl: string;

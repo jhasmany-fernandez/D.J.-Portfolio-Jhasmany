@@ -1,9 +1,13 @@
 export interface Project {
   id?: string // Optional for API responses
   title: string
+  titleEs?: string
   description?: string
+  descriptionEs?: string
   shortDescription: string
+  shortDescriptionEs?: string
   content?: string
+  contentEs?: string
   technologies?: string[]
   priority: number
   imageUrl?: string
@@ -45,7 +49,9 @@ export interface Testimonial {
   id?: string
   name: string
   title?: string
+  titleEs?: string
   feedback: string
+  feedbackEs?: string
   image: string
   stars: number
   isPublished?: boolean

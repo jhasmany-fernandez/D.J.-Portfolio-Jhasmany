@@ -17,14 +17,26 @@ export class Project {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  titleEs: string;
+
   @Column('text', { nullable: true })
   description: string;
+
+  @Column('text', { nullable: true })
+  descriptionEs: string;
 
   @Column('text', { nullable: true })
   shortDescription: string;
 
   @Column('text', { nullable: true })
+  shortDescriptionEs: string;
+
+  @Column('text', { nullable: true })
   content: string;
+
+  @Column('text', { nullable: true })
+  contentEs: string;
 
   @Column('simple-array', { nullable: true })
   technologies: string[];

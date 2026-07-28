@@ -18,6 +18,9 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { demoDeleted, demoEntity, isVisitor } from '../auth/utils/demo-response';
 
 @ApiTags('Projects')
 @Controller('projects')
@@ -25,11 +28,15 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new project' })
   @ApiResponse({ status: 201, description: 'Project created successfully' })
   create(@Body() createProjectDto: CreateProjectDto, @Request() req) {
+    if (isVisitor(req)) {
+      return demoEntity(createProjectDto);
+    }
     const authorId = req?.user?.userId;
     return this.projectsService.create(createProjectDto, authorId);
   }
@@ -62,46 +69,66 @@ export class ProjectsController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update project by ID' })
   @ApiResponse({ status: 200, description: 'Project updated successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProjectDto: UpdateProjectDto,
+    @Request() req,
   ) {
+    if (isVisitor(req)) {
+      return this.projectsService.findOne(id).then((project) => demoEntity(updateProjectDto, project));
+    }
     return this.projectsService.update(id, updateProjectDto);
   }
 
   @Patch(':id/order')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update project order' })
   @ApiResponse({ status: 200, description: 'Project order updated successfully' })
   updateOrder(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('order', ParseIntPipe) order: number,
+    @Request() req,
   ) {
+    if (isVisitor(req)) {
+      return this.projectsService.findOne(id).then((project) => demoEntity({ order }, project));
+    }
     return this.projectsService.updateOrder(id, order);
   }
 
   @Patch(':id/toggle-published')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Toggle project published status' })
   @ApiResponse({ status: 200, description: 'Project status toggled successfully' })
-  togglePublished(@Param('id', ParseUUIDPipe) id: string) {
+  togglePublished(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return this.projectsService
+        .findOne(id)
+        .then((project) => demoEntity({ isPublished: !project.isPublished }, project));
+    }
     return this.projectsService.togglePublished(id);
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete project by ID' })
   @ApiResponse({ status: 200, description: 'Project deleted successfully' })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return demoDeleted(id);
+    }
     return this.projectsService.remove(id);
   }
 }

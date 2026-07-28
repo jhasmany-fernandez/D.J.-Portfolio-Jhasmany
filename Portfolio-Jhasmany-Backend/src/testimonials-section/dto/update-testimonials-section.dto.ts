@@ -5,6 +5,10 @@ export class UpdateTestimonialsSectionDto {
   @IsOptional()
   subtitle?: string;
 
+  @IsString()
+  @IsOptional()
+  subtitleEs?: string;
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

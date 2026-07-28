@@ -27,7 +27,7 @@ const ResetPasswordForm = () => {
     // Validate token
     const validateToken = async () => {
       try {
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/validate-reset-token?token=${token}`;
+        const url = `/api/auth/validate-reset-token?token=${encodeURIComponent(token)}`;
 
         const response = await fetch(url, {
           method: 'GET',

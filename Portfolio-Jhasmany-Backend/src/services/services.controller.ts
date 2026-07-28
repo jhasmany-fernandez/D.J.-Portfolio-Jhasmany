@@ -15,6 +15,9 @@ import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { demoDeleted, demoEntity, isVisitor } from '../auth/utils/demo-response';
 
 @ApiTags('services')
 @Controller('services')
@@ -22,11 +25,15 @@ export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new service' })
   @ApiResponse({ status: 201, description: 'Service created successfully' })
   create(@Body() createServiceDto: CreateServiceDto, @Request() req) {
+    if (isVisitor(req)) {
+      return demoEntity(createServiceDto);
+    }
     const authorId = req?.user?.userId;
     return this.servicesService.create(createServiceDto, authorId);
   }
@@ -48,36 +55,54 @@ export class ServicesController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a service' })
   @ApiResponse({ status: 200, description: 'Service updated successfully' })
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
+  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto, @Request() req) {
+    if (isVisitor(req)) {
+      return this.servicesService.findOne(id).then((service) => demoEntity(updateServiceDto, service));
+    }
     return this.servicesService.update(id, updateServiceDto);
   }
 
   @Patch(':id/order')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update service order' })
-  updateOrder(@Param('id') id: string, @Body('order') order: number) {
+  updateOrder(@Param('id') id: string, @Body('order') order: number, @Request() req) {
+    if (isVisitor(req)) {
+      return this.servicesService.findOne(id).then((service) => demoEntity({ order }, service));
+    }
     return this.servicesService.updateOrder(id, order);
   }
 
   @Patch(':id/toggle-published')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Toggle service published status' })
-  togglePublished(@Param('id') id: string) {
+  togglePublished(@Param('id') id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return this.servicesService
+        .findOne(id)
+        .then((service) => demoEntity({ isPublished: !service.isPublished }, service));
+    }
     return this.servicesService.togglePublished(id);
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a service' })
   @ApiResponse({ status: 200, description: 'Service deleted successfully' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return demoDeleted(id);
+    }
     return this.servicesService.remove(id);
   }
 }

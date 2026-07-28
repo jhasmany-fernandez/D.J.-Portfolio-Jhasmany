@@ -1,5 +1,7 @@
 'use client'
 
+import { useLanguage } from '@/contexts/LanguageContext'
+
 interface ServiceCardTypes {
   icon: string
   title: string
@@ -37,6 +39,8 @@ const ServiceCard: React.FC<ServiceCardTypes> = ({
   showProjectsCompletedInPortfolio = true,
   showRatingsInPortfolio = true
 }) => {
+  const { t } = useLanguage()
+
   return (
     <div className="group bg-secondary border-border hover:border-accent relative flex flex-col items-center rounded-[14px] border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-accent/10">
       {/* Experience Badge */}
@@ -91,7 +95,7 @@ const ServiceCard: React.FC<ServiceCardTypes> = ({
             ))}
             {technologies.length > 5 && (
               <span className="text-tertiary-content text-xs px-2 py-1 flex items-center">
-                +{technologies.length - 5} más
+                +{technologies.length - 5} {t('service.more')}
               </span>
             )}
           </div>

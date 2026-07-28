@@ -7,11 +7,16 @@ import {
   Param,
   Delete,
   Request,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { HomeService } from './home.service';
 import { CreateHomeDto } from './dto/create-home.dto';
 import { UpdateHomeDto } from './dto/update-home.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { demoDeleted, demoEntity, isVisitor } from '../auth/utils/demo-response';
 
 @ApiTags('home')
 @Controller('home')
@@ -19,9 +24,15 @@ export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new home section' })
   @ApiResponse({ status: 201, description: 'Home section created successfully' })
   create(@Body() createHomeDto: CreateHomeDto, @Request() req) {
+    if (isVisitor(req)) {
+      return demoEntity(createHomeDto);
+    }
     const authorId = req?.user?.userId;
     return this.homeService.create(createHomeDto, authorId);
   }
@@ -53,23 +64,41 @@ export class HomeController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a home section' })
   @ApiResponse({ status: 200, description: 'Home section updated successfully' })
-  update(@Param('id') id: string, @Body() updateHomeDto: UpdateHomeDto) {
+  update(@Param('id') id: string, @Body() updateHomeDto: UpdateHomeDto, @Request() req) {
+    if (isVisitor(req)) {
+      return this.homeService.findOne(id).then((home) => demoEntity(updateHomeDto, home));
+    }
     return this.homeService.update(id, updateHomeDto);
   }
 
   @Patch(':id/set-active')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Set home section as active' })
   @ApiResponse({ status: 200, description: 'Home section set as active' })
-  setActive(@Param('id') id: string) {
+  setActive(@Param('id') id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return this.homeService.findOne(id).then((home) => demoEntity({ isActive: true }, home));
+    }
     return this.homeService.setActive(id);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a home section' })
   @ApiResponse({ status: 200, description: 'Home section deleted successfully' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return demoDeleted(id);
+    }
     return this.homeService.remove(id);
   }
 }

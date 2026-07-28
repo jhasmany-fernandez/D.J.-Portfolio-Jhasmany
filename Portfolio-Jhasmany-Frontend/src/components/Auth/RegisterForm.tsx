@@ -158,6 +158,22 @@ const RegisterForm = () => {
           />
         </form>
 
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-tertiary-content">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <a
+          href="/api/auth/google"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-primary px-4 py-2 text-sm font-medium text-primary-content transition-colors hover:border-accent hover:text-neutral"
+        >
+          <span className="flex size-5 items-center justify-center rounded-full bg-white text-sm font-bold text-[#4285F4]">
+            G
+          </span>
+          Sign up with Google
+        </a>
+
         <div className="mt-6 text-center">
           <Link
             href="/auth/login"

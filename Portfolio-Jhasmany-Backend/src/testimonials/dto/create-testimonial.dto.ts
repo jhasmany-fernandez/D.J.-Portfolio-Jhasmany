@@ -10,8 +10,16 @@ export class CreateTestimonialDto {
   title?: string;
 
   @IsString()
+  @IsOptional()
+  titleEs?: string;
+
+  @IsString()
   @IsNotEmpty()
   feedback: string;
+
+  @IsString()
+  @IsOptional()
+  feedbackEs?: string;
 
   @IsString()
   @IsNotEmpty()

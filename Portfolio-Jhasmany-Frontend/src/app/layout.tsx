@@ -9,7 +9,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext'
 
 // const firaCode = Fira_Code({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] })
 
-const title = 'Jhasmany Fernandez | Full-Stack Web Developer in Chicago'
+const title = 'Portfolio Jhasmany'
 
 const description =
   "Skilled full-stack web developer in Chicago. I build responsive, user-friendly websites with React, NextJS, and NodeJS. Let's bring your vision to life. Hire me today!"
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title,
     description,
     url,
-    siteName: 'Jhasmany Fernandez Portfolio',
+    siteName: 'Portfolio Jhasmany',
     type: 'website',
   },
   twitter: {

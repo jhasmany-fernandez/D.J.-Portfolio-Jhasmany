@@ -1,6 +1,7 @@
 import { Project } from '@/lib/types'
 import { NextResponse } from 'next/server'
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { getAuthHeader } from '../auth/_utils'
 
 // Use Docker service name for internal communication (SSR)
 // Fall back to localhost for client-side or development
@@ -52,15 +53,14 @@ export async function POST(request: Request) {
     const body = await request.json()
     const project: Project = body
     const backendURL = getBackendURL()
+    const authHeader = await getAuthHeader()
 
 
-    // TODO: Add authentication token from session
     const response = await fetch(`${backendURL}/api/projects`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // TODO: Add Authorization header with JWT token
-        // 'Authorization': `Bearer ${token}`,
+        ...authHeader,
       },
       body: JSON.stringify(project),
     })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { getAuthHeader } from '../../auth/_utils';
 
 export async function PATCH(
   request: NextRequest,
@@ -9,11 +10,13 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const apiUrl = process.env.API_URL || 'http://backend:3001';
+    const authHeader = await getAuthHeader();
 
     const response = await fetch(`${apiUrl}/api/footer/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       body: JSON.stringify(body),
     });

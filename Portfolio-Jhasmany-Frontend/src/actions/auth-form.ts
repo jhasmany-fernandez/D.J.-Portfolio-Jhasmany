@@ -5,6 +5,26 @@ import { cookies } from 'next/headers'
 
 const API_URL = process.env.API_URL || 'http://backend:3001'
 
+const getErrorMessage = (data: any, fallback: string) => {
+  if (typeof data?.message === 'string') {
+    return data.message
+  }
+
+  if (typeof data?.message?.message === 'string') {
+    return data.message.message
+  }
+
+  if (typeof data?.error === 'string') {
+    return data.error
+  }
+
+  if (typeof data?.error?.message === 'string') {
+    return data.error.message
+  }
+
+  return fallback
+}
+
 export async function loginAction(prevState: unknown, formData: FormData) {
   const validatedFields = loginSchema.safeParse({
     email: formData.get('email'),
@@ -46,11 +66,11 @@ export async function loginAction(prevState: unknown, formData: FormData) {
       return {
         success: true,
         message: 'Login successful! Redirecting...',
-        redirect: '/dashboard'
+        redirect: data.user?.role === 'testimonial' ? '/dashboard/testimonials' : '/dashboard'
       }
     } else {
       // Handle different error response structures
-      const errorMessage = data.message?.message || data.message || 'Invalid credentials. Please try again.';
+      const errorMessage = getErrorMessage(data, 'Invalid credentials. Please try again.');
       return {
         success: false,
         message: errorMessage,
@@ -99,7 +119,7 @@ export async function registerAction(prevState: unknown, formData: FormData) {
     } else {
       return {
         success: false,
-        message: data.message || 'Failed to create account. Please try again.',
+        message: getErrorMessage(data, 'Failed to create account. Please try again.'),
       }
     }
   } catch (error) {
@@ -144,7 +164,7 @@ export async function forgotPasswordAction(prevState: unknown, formData: FormDat
     } else {
       return {
         success: false,
-        error: data.message || 'Failed to send reset email. Please try again.',
+        error: getErrorMessage(data, 'Failed to send reset email. Please try again.'),
       }
     }
   } catch (error) {
@@ -198,7 +218,7 @@ export async function resetPasswordAction(prevState: unknown, formData: FormData
     } else {
       return {
         success: false,
-        error: data.message || 'Failed to reset password. Please try again.',
+        error: getErrorMessage(data, 'Failed to reset password. Please try again.'),
       }
     }
   } catch (error) {

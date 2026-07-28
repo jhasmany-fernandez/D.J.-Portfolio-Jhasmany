@@ -22,9 +22,21 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
   password: string;
+
+  @Column({ default: 'email' })
+  authProvider: string;
+
+  @Column({ nullable: true })
+  googleId: string;
+
+  @Column({ nullable: true })
+  avatarUrl: string;
+
+  @Column({ default: false })
+  emailVerified: boolean;
 
   @Column({ default: 'user' })
   role: string;

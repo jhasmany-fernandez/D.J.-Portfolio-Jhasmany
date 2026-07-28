@@ -39,10 +39,12 @@ export class CreateUserDto {
     description: 'User role',
     example: 'user',
     required: false,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin', 'testimonial', 'visitor'],
   })
   @IsOptional()
   @IsString()
-  @Matches(/^(user|admin)$/, { message: 'Role must be either user or admin' })
+  @Matches(/^(user|admin|testimonial|visitor)$/, {
+    message: 'Role must be user, admin, testimonial, or visitor',
+  })
   role?: string = 'user';
 }

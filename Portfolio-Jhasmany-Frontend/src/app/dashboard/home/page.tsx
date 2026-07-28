@@ -6,12 +6,17 @@ import { useToast } from '@/hooks/useToast'
 interface HomeSection {
   id: string
   greeting: string
+  greetingEs?: string
   roles: string[]
+  rolesEs?: string[]
   description: string
+  descriptionEs?: string
   imageUrl?: string
   primaryButtonText?: string
+  primaryButtonTextEs?: string
   primaryButtonUrl?: string
   secondaryButtonText?: string
+  secondaryButtonTextEs?: string
   secondaryButtonUrl?: string
   isActive: boolean
   createdAt?: string
@@ -38,12 +43,17 @@ export default function HomePage() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [createForm, setCreateForm] = useState<Partial<HomeSection>>({
     greeting: '',
+    greetingEs: '',
     roles: [''],
+    rolesEs: [''],
     description: '',
+    descriptionEs: '',
     imageUrl: '',
     primaryButtonText: 'Acceso Personal',
+    primaryButtonTextEs: 'Acceso Personal',
     primaryButtonUrl: '/auth/login',
     secondaryButtonText: 'Newsletter Clientes',
+    secondaryButtonTextEs: 'Newsletter Clientes',
     secondaryButtonUrl: '/newsletter/subscribe',
     isActive: false
   })
@@ -305,7 +315,8 @@ export default function HomePage() {
       const sectionData = {
         ...createForm,
         imageUrl: imageUrl || '',
-        roles: createForm.roles?.filter(r => r.trim()) || []
+        roles: createForm.roles?.filter(r => r.trim()) || [],
+        rolesEs: createForm.rolesEs?.filter(r => r.trim()) || []
       }
 
       const response = await fetch('/api/home', {
@@ -336,12 +347,17 @@ export default function HomePage() {
   const resetCreateForm = () => {
     setCreateForm({
       greeting: '',
+      greetingEs: '',
       roles: [''],
+      rolesEs: [''],
       description: '',
+      descriptionEs: '',
       imageUrl: '',
       primaryButtonText: 'Acceso Personal',
+      primaryButtonTextEs: 'Acceso Personal',
       primaryButtonUrl: '/auth/login',
       secondaryButtonText: 'Newsletter Clientes',
+      secondaryButtonTextEs: 'Newsletter Clientes',
       secondaryButtonUrl: '/newsletter/subscribe',
       isActive: false
     })
@@ -485,6 +501,30 @@ export default function HomePage() {
     })
   }
 
+  const addCreateRoleEs = () => {
+    setCreateForm({
+      ...createForm,
+      rolesEs: [...(createForm.rolesEs || []), '']
+    })
+  }
+
+  const removeCreateRoleEs = (index: number) => {
+    const newRoles = createForm.rolesEs?.filter((_, i) => i !== index) || []
+    setCreateForm({
+      ...createForm,
+      rolesEs: newRoles
+    })
+  }
+
+  const updateCreateRoleEs = (index: number, value: string) => {
+    const newRoles = [...(createForm.rolesEs || [])]
+    newRoles[index] = value
+    setCreateForm({
+      ...createForm,
+      rolesEs: newRoles
+    })
+  }
+
   // Add role to edit form
   const addEditRole = () => {
     if (editForm) {
@@ -514,6 +554,36 @@ export default function HomePage() {
       setEditForm({
         ...editForm,
         roles: newRoles
+      })
+    }
+  }
+
+  const addEditRoleEs = () => {
+    if (editForm) {
+      setEditForm({
+        ...editForm,
+        rolesEs: [...(editForm.rolesEs || []), '']
+      })
+    }
+  }
+
+  const removeEditRoleEs = (index: number) => {
+    if (editForm) {
+      const newRoles = (editForm.rolesEs || []).filter((_, i) => i !== index)
+      setEditForm({
+        ...editForm,
+        rolesEs: newRoles
+      })
+    }
+  }
+
+  const updateEditRoleEs = (index: number, value: string) => {
+    if (editForm) {
+      const newRoles = [...(editForm.rolesEs || [])]
+      newRoles[index] = value
+      setEditForm({
+        ...editForm,
+        rolesEs: newRoles
       })
     }
   }
@@ -673,6 +743,19 @@ export default function HomePage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Greeting ES
+                </label>
+                <input
+                  type="text"
+                  value={createForm.greetingEs ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, greetingEs: e.target.value })}
+                  placeholder="Hola, soy Jhasmany Fernandez"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+
               {/* Roles */}
               <div>
                 <label className="block text-sm font-medium text-neutral mb-1">
@@ -707,6 +790,39 @@ export default function HomePage() {
                 </button>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Roles ES
+                </label>
+                {(createForm.rolesEs || ['']).map((role, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={role}
+                      onChange={(e) => updateCreateRoleEs(idx, e.target.value)}
+                      placeholder="DESARROLLADOR FULLSTACK"
+                      className="flex-1 px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    {(createForm.rolesEs || []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCreateRoleEs(idx)}
+                        className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addCreateRoleEs}
+                  className="bg-accent text-secondary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 mt-2"
+                >
+                  + Add Role ES
+                </button>
+              </div>
+
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-neutral mb-1">
@@ -724,6 +840,19 @@ export default function HomePage() {
 
               <div>
                 <label className="block text-sm font-medium text-neutral mb-1">
+                  Description ES
+                </label>
+                <textarea
+                  value={createForm.descriptionEs ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, descriptionEs: e.target.value })}
+                  rows={3}
+                  placeholder="Construyo aplicaciones web, APIs y sistemas administrativos..."
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
                   Texto Boton Primario *
                 </label>
                 <input
@@ -733,6 +862,19 @@ export default function HomePage() {
                   placeholder="Acceso Personal"
                   className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Texto Boton Primario ES
+                </label>
+                <input
+                  type="text"
+                  value={createForm.primaryButtonTextEs ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, primaryButtonTextEs: e.target.value })}
+                  placeholder="Acceso Personal"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -761,6 +903,19 @@ export default function HomePage() {
                   placeholder="Newsletter Clientes"
                   className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Texto Boton Secundario ES
+                </label>
+                <input
+                  type="text"
+                  value={createForm.secondaryButtonTextEs ?? ''}
+                  onChange={(e) => setCreateForm({ ...createForm, secondaryButtonTextEs: e.target.value })}
+                  placeholder="Newsletter Clientes"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -876,6 +1031,19 @@ export default function HomePage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Greeting ES
+                </label>
+                <input
+                  type="text"
+                  value={editForm.greetingEs ?? ''}
+                  onChange={(e) => setEditForm({ ...editForm, greetingEs: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                  placeholder="Hola, soy Jhasmany Fernandez"
+                />
+              </div>
+
               {/* Roles */}
               <div>
                 <label className="block text-sm font-medium text-neutral mb-1">
@@ -907,6 +1075,39 @@ export default function HomePage() {
                   className="bg-accent text-secondary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 mt-2"
                 >
                   + Add Role
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral mb-1">
+                  Roles ES
+                </label>
+                {(editForm.rolesEs || ['']).map((role, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={role}
+                      onChange={(e) => updateEditRoleEs(idx, e.target.value)}
+                      className="flex-1 px-3 py-2 border border-border rounded-lg bg-primary text-neutral focus:outline-none focus:ring-2 focus:ring-accent"
+                      placeholder="DESARROLLADOR FULLSTACK"
+                    />
+                    {(editForm.rolesEs || []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeEditRoleEs(idx)}
+                        className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addEditRoleEs}
+                  className="bg-accent text-secondary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 mt-2"
+                >
+                  + Add Role ES
                 </button>
               </div>
 

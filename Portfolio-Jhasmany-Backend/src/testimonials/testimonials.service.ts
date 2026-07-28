@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Testimonial } from './entities/testimonial.entity';
@@ -12,8 +12,11 @@ export class TestimonialsService {
     private testimonialRepository: Repository<Testimonial>,
   ) {}
 
-  async create(createTestimonialDto: CreateTestimonialDto): Promise<Testimonial> {
-    const testimonial = this.testimonialRepository.create(createTestimonialDto);
+  async create(createTestimonialDto: CreateTestimonialDto, authorId?: string): Promise<Testimonial> {
+    const testimonial = this.testimonialRepository.create({
+      ...createTestimonialDto,
+      authorId: authorId ?? null,
+    });
     return await this.testimonialRepository.save(testimonial);
   }
 
@@ -44,6 +47,16 @@ export class TestimonialsService {
 
   async update(id: string, updateTestimonialDto: UpdateTestimonialDto): Promise<Testimonial> {
     const testimonial = await this.findOne(id);
+    Object.assign(testimonial, updateTestimonialDto);
+    return await this.testimonialRepository.save(testimonial);
+  }
+
+  async updateOwn(id: string, userId: string, updateTestimonialDto: UpdateTestimonialDto): Promise<Testimonial> {
+    const testimonial = await this.findOne(id);
+    if (testimonial.authorId !== userId) {
+      throw new ForbiddenException('You can only edit your own testimonial');
+    }
+
     Object.assign(testimonial, updateTestimonialDto);
     return await this.testimonialRepository.save(testimonial);
   }

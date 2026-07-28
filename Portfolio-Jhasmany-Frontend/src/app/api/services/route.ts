@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
+import { getAuthHeader } from '../auth/_utils'
 
 const getBackendCandidates = () => {
   const urls = [
@@ -60,12 +61,14 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    const authHeader = await getAuthHeader()
 
 
     const response = await fetchBackend('/api/services', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       body: JSON.stringify(body),
     })

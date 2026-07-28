@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateServicesSectionDto {
@@ -9,4 +9,13 @@ export class UpdateServicesSectionDto {
   @IsString()
   @IsNotEmpty()
   subtitle: string;
+
+  @ApiProperty({
+    description: 'Subtitle for the services section in Spanish',
+    example: 'Ofrezco una amplia gama de servicios para crear soluciones web modernas.',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  subtitleEs?: string;
 }

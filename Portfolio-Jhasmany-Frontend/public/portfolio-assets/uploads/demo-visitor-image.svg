@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Visitor demo image</title>
+  <desc id="desc">Temporary placeholder for visitor demo uploads.</desc>
+  <rect width="960" height="540" fill="#001b2e"/>
+  <rect x="32" y="32" width="896" height="476" rx="18" fill="#05273d" stroke="#16f2e3" stroke-opacity=".45" stroke-width="2"/>
+  <text x="480" y="248" text-anchor="middle" fill="#16f2e3" font-family="monospace" font-size="34" font-weight="700">VISITOR DEMO</text>
+  <text x="480" y="300" text-anchor="middle" fill="#d5e9f4" font-family="monospace" font-size="20">Upload simulated. Nothing was saved.</text>
+</svg>

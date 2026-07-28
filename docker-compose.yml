@@ -34,11 +34,14 @@ services:
       JWT_EXPIRES_IN: 7d
       EMAIL_HOST: smtp.gmail.com
       EMAIL_PORT: 587
-      EMAIL_USER: your_email@gmail.com
-      EMAIL_PASS: your_gmail_app_password
-      EMAIL_FROM: your_email@gmail.com
-      EMAIL_FROM_NAME: Portfolio
-      FRONTEND_URL: http://localhost
+      EMAIL_USER: ${EMAIL_USER:-jhasmany.fernandez.dev@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-your_gmail_app_password}
+      EMAIL_FROM: ${EMAIL_FROM:-jhasmany.fernandez.dev@gmail.com}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Jhasmany Fernandez - Portfolio}
+      EMAIL_REQUIRE_REAL: ${EMAIL_REQUIRE_REAL:-true}
+      FRONTEND_URL: ${FRONTEND_URL:-https://jhasmany-fernandez.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       UPLOAD_DIR: /app/public-uploads
     ports:
       - "3001:3001"
@@ -65,21 +68,22 @@ services:
     build:
       context: ./Portfolio-Jhasmany-Frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://jhasmany-fernandez.com}
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     container_name: portfolio_frontend
     restart: unless-stopped
-    command: npm run dev
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3000
       API_URL: http://backend:3001
       NEXT_PUBLIC_API_URL: http://localhost:3001
-      NEXT_PUBLIC_SITE_URL: http://localhost
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://jhasmany-fernandez.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       NEXT_TELEMETRY_DISABLED: 1
     ports:
       - "80:3000"
-    volumes:
-      - ./Portfolio-Jhasmany-Frontend:/app
-      - /app/node_modules
     depends_on:
       backend:
         condition: service_healthy

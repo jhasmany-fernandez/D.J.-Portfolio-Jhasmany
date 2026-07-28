@@ -12,6 +12,15 @@ export class CreateHomeDto {
   greeting: string;
 
   @ApiProperty({
+    description: 'Greeting text in Spanish',
+    example: 'Hola, soy Jhasmany Fernandez',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  greetingEs?: string;
+
+  @ApiProperty({
     description: 'Array of roles to display',
     example: ['FULLSTACK DEVELOPER', 'INDIE HACKER', 'SOLOPRENEUR'],
   })
@@ -20,11 +29,30 @@ export class CreateHomeDto {
   roles: string[];
 
   @ApiProperty({
+    description: 'Array of roles to display in Spanish',
+    example: ['DESARROLLADOR FULLSTACK', 'HACKER ETICO'],
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  rolesEs?: string[];
+
+  @ApiProperty({
     description: 'Description text',
     example: 'Crafting innovative solutions to solve real-world problems',
   })
   @IsString()
   description: string;
+
+  @ApiProperty({
+    description: 'Description text in Spanish',
+    example: 'Construyo aplicaciones web, APIs y sistemas administrativos.',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  descriptionEs?: string;
 
   @ApiProperty({
     description: 'Hero image URL',
@@ -48,6 +76,15 @@ export class CreateHomeDto {
   primaryButtonText?: string;
 
   @ApiProperty({
+    description: 'Primary button text in Spanish',
+    example: 'Acceso Personal',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  primaryButtonTextEs?: string;
+
+  @ApiProperty({
     description: 'Primary button URL',
     example: '/auth/login',
     required: false,
@@ -64,6 +101,15 @@ export class CreateHomeDto {
   @IsOptional()
   @IsString()
   secondaryButtonText?: string;
+
+  @ApiProperty({
+    description: 'Secondary button text in Spanish',
+    example: 'Newsletter Clientes',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  secondaryButtonTextEs?: string;
 
   @ApiProperty({
     description: 'Secondary button URL',

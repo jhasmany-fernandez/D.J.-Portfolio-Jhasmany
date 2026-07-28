@@ -5,7 +5,7 @@ import * as nodemailer from 'nodemailer';
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null;
 
   constructor(private configService: ConfigService) {
     this.createTransporter();
@@ -17,16 +17,17 @@ export class EmailService {
     const emailUser = this.configService.get('EMAIL_USER');
     const emailPass = this.configService.get('EMAIL_PASS');
 
-    if (!emailHost || !emailUser || !emailPass) {
+    if (!emailHost || !emailUser || !emailPass || emailPass === 'your_gmail_app_password') {
       this.logger.warn('Email configuration incomplete. Email sending will be simulated.');
       this.transporter = null;
       return;
     }
 
+    const port = parseInt(emailPort) || 587;
     this.transporter = nodemailer.createTransport({
       host: emailHost,
-      port: parseInt(emailPort) || 587,
-      secure: false, // true for 465, false for other ports
+      port,
+      secure: port === 465,
       auth: {
         user: emailUser,
         pass: emailPass,
@@ -41,6 +42,10 @@ export class EmailService {
 
   private async sendEmail(emailContent: any): Promise<void> {
     if (!this.transporter) {
+      if (this.configService.get('EMAIL_REQUIRE_REAL') === 'true') {
+        throw new Error('Real email delivery is required but SMTP is not configured');
+      }
+
       this.logger.log(`[DEVELOPMENT] Email would be sent: ${JSON.stringify(emailContent, null, 2)}`);
       return;
     }
@@ -58,12 +63,13 @@ export class EmailService {
     try {
       const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:3002');
       const resetUrl = `${frontendUrl}/auth/reset-password?token=${resetToken}`;
+      const from = this.getFromAddress();
 
       // En un entorno de producción, aquí integrarías con un servicio de email real
       // como SendGrid, AWS SES, Nodemailer, etc.
 
       const emailContent = {
-        from: 'jhasmany.fernandez.dev@gmail.com',
+        from,
         to: email,
         subject: 'Password Reset Request - Portfolio Jhasmany',
         html: `
@@ -99,8 +105,9 @@ export class EmailService {
 
   async sendPasswordResetConfirmation(email: string, userName: string): Promise<void> {
     try {
+      const from = this.getFromAddress();
       const emailContent = {
-        from: 'jhasmany.fernandez.dev@gmail.com',
+        from,
         to: email,
         subject: 'Password Successfully Reset - Portfolio Jhasmany',
         html: `
@@ -145,9 +152,10 @@ export class EmailService {
         : '#';
 
       const name = subscriberName || 'Valued Subscriber';
+      const from = this.getFromAddress();
 
       const emailContent = {
-        from: 'jhasmany.fernandez.dev@gmail.com',
+        from,
         to: email,
         subject: '🎉 Welcome to Jhasmany\'s Developer Newsletter!',
         html: `
@@ -244,9 +252,10 @@ export class EmailService {
         : '#';
 
       const name = subscriberName || 'Valued Client';
+      const from = this.getFromAddress();
 
       const emailContent = {
-        from: 'jhasmany.fernandez.dev@gmail.com',
+        from,
         to: email,
         subject: '📁 Your Portfolio Catalog - Latest Projects & Services',
         html: `
@@ -365,9 +374,10 @@ export class EmailService {
     try {
       const frontendUrl = this.configService.get('FRONTEND_URL', 'http://localhost:3002');
       const name = subscriberName || 'Subscriber';
+      const from = this.getFromAddress();
 
       const emailContent = {
-        from: 'jhasmany.fernandez.dev@gmail.com',
+        from,
         to: email,
         subject: '✅ Successfully Unsubscribed - Portfolio Jhasmany',
         html: `
@@ -404,5 +414,16 @@ export class EmailService {
       this.logger.error(`Failed to send unsubscribe confirmation email to ${email}:`, error);
       // No lanzamos error aquí porque el unsubscribe ya fue exitoso
     }
+  }
+
+  private getFromAddress(): string {
+    const emailFrom = this.configService.get('EMAIL_FROM') || this.configService.get('EMAIL_USER');
+    const emailFromName = this.configService.get('EMAIL_FROM_NAME');
+
+    if (emailFromName && emailFrom) {
+      return `"${emailFromName}" <${emailFrom}>`;
+    }
+
+    return emailFrom || 'no-reply@localhost';
   }
 }

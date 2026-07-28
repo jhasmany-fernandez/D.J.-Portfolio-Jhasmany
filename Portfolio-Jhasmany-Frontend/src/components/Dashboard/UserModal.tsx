@@ -186,6 +186,8 @@ export default function UserModal({ isOpen, onClose, onSubmit, loading = false }
             >
               <option value="user">Usuario</option>
               <option value="admin">Administrador</option>
+              <option value="testimonial">Testimonial</option>
+              <option value="visitor">Visitante demo</option>
             </select>
           </div>
 

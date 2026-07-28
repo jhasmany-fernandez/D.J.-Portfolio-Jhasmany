@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthHeader } from '../auth/_utils';
 
 export async function GET() {
   try {
@@ -29,11 +30,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const apiUrl = process.env.API_URL || 'http://backend:3001';
+    const authHeader = await getAuthHeader();
 
     const response = await fetch(`${apiUrl}/api/testimonials`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       body: JSON.stringify(body),
     });

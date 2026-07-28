@@ -4,6 +4,8 @@ import { Project } from '@/lib/types'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Earning, GithubIcon, Likes, PreviewIcon, ShoppingCartIcon, Star, Timer } from '../../utils/icons'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { pickLocalizedText } from '@/utils/i18n'
 
 const IconText: React.FC<{ icon: string; text: string }> = ({ icon, text }) => (
   <li className="flex gap-2 items-center">
@@ -12,19 +14,12 @@ const IconText: React.FC<{ icon: string; text: string }> = ({ icon, text }) => (
   </li>
 )
 
-// Helper functions to format statistics with descriptive text only (icons handled by IconText)
-const formatVisitors = (value: string) => `${value} Visitors`
-const formatEarned = (value: string) => `${value} Earned`
-const formatGithubStars = (value: string) => `${value} Stars`
-const formatRatings = (value: string) => `${value} Rating`
-const formatNumberOfSales = (value: string) => `${value} Sales`
-const formatSiteAge = (value: string) => `${value} old`
-
 interface ProjectCardProps {
   data: Project
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
+  const { currentLanguage, t } = useLanguage()
   const [isImageOpen, setIsImageOpen] = useState(false)
 
   const {
@@ -49,13 +44,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
     type,
     cover,
   } = data
+  const localizedTitle = pickLocalizedText(data, 'title', currentLanguage)
+  const localizedShortDescription = pickLocalizedText(data, 'shortDescription', currentLanguage)
 
   return (
     <div className="bg-secondary border-border flex min-h-[18rem] flex-col justify-between rounded-[14px] border p-5 sm:p-6 lg:p-7">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex flex-col flex-wrap gap-3 sm:flex-row sm:items-center">
-            <h3 className="text-secondary-content text-lg font-medium md:font-semibold">{title}</h3>
+            <h3 className="text-secondary-content text-lg font-medium md:font-semibold">{localizedTitle}</h3>
             {type && (
               <span
                 className={`h-7 w-fit rounded-md bg-[#FFFFFF1A] p-1 text-sm ${type === 'New 🔥' ? 'animate-blink text-tag' : 'text-accent'} backdrop-blur-[80px]`}>
@@ -65,22 +62,22 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
           </div>
           <ul className="mt-3 flex flex-col flex-wrap gap-2 sm:flex-row sm:gap-4">
             {visitors && showVisitorsInPortfolio && (
-              <IconText text={formatVisitors(visitors)} icon={Likes} />
+              <IconText text={`${visitors} ${t('project.visitors')}`} icon={Likes} />
             )}
             {numberOfSales && showNumberOfSalesInPortfolio && (
-              <IconText text={formatNumberOfSales(numberOfSales)} icon={ShoppingCartIcon} />
+              <IconText text={`${numberOfSales} ${t('project.sales')}`} icon={ShoppingCartIcon} />
             )}
             {siteAge && showSiteAgeInPortfolio && (
-              <IconText text={formatSiteAge(siteAge)} icon={Timer} />
+              <IconText text={`${siteAge} ${t('project.old')}`} icon={Timer} />
             )}
             {earned && showEarnedInPortfolio && (
-              <IconText text={formatEarned(earned)} icon={Earning} />
+              <IconText text={`${earned} ${t('project.earned')}`} icon={Earning} />
             )}
             {ratings && showRatingsInPortfolio && (
-              <IconText text={formatRatings(ratings)} icon={Star} />
+              <IconText text={`${ratings} ${t('project.rating')}`} icon={Star} />
             )}
             {githubStars && showGithubStarsInPortfolio && (
-              <IconText text={formatGithubStars(githubStars)} icon={Star} />
+              <IconText text={`${githubStars} ${t('project.stars')}`} icon={Star} />
             )}
           </ul>
         </div>
@@ -99,7 +96,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
 
       <div>
         <div className="bg-primary text-primary-content my-5 min-h-[120px] overflow-auto rounded-2xl px-4 py-3 lg:px-5">
-          <p className="text-[14px] font-normal md:text-base">{shortDescription}</p>
+          <p className="text-[14px] font-normal md:text-base">{localizedShortDescription}</p>
         </div>
         <div className="flex gap-5">
           {livePreview && showLivePreviewInPortfolio && (
@@ -108,7 +105,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
               className="text-accent flex gap-2 text-sm underline underline-offset-[3px] transition-all duration-75 ease-linear hover:scale-105 md:text-base"
               target="_blank">
               <PreviewIcon className="h-auto w-[18px] md:w-5" />
-              <span>Live Preview</span>
+              <span>{t('project.preview')}</span>
             </a>
           )}
           {githubLink && showGithubInPortfolio && (
@@ -117,7 +114,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
               className="text-accent flex gap-2 text-sm underline underline-offset-[3px] transition-all duration-75 ease-linear hover:scale-105 md:text-base"
               target="_blank">
               <GithubIcon className="w-[18px] md:w-5" />
-              <span>Github Link</span>
+              <span>{t('project.github')}</span>
             </a>
           )}
         </div>
@@ -133,7 +130,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
             <button
               onClick={() => setIsImageOpen(false)}
               className="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300 transition-colors"
-              aria-label="Cerrar"
+              aria-label={t('project.close')}
             >
               ✕
             </button>
@@ -141,7 +138,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
               src={cover}
               width={1200}
               height={800}
-              alt={title}
+              alt={localizedTitle}
               className="max-h-[90vh] w-auto object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />

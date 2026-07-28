@@ -5,7 +5,7 @@ interface RoleSwitcherOptions {
   interval?: number
 }
 
-function useRoleSwitcher({ roles, interval = 1800 }: RoleSwitcherOptions): string {
+function useRoleSwitcher({ roles, interval = 2600 }: RoleSwitcherOptions): string {
   const [role, setRole] = useState<string>(roles.length > 0 ? roles[0] : '')
 
   useEffect(() => {

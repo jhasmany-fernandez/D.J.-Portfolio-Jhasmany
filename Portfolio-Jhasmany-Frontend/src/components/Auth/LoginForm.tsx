@@ -10,7 +10,15 @@ import Link from 'next/link'
 const LoginForm = () => {
   const [status, formAction, isPending] = useActionState(loginAction, null)
   const [showPassword, setShowPassword] = useState(false)
+  const [oauthError, setOauthError] = useState<string | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    const error = new URLSearchParams(window.location.search).get('error')
+    if (error) {
+      setOauthError(error)
+    }
+  }, [])
 
   useEffect(() => {
     if (status?.success && status.redirect) {
@@ -95,11 +103,33 @@ const LoginForm = () => {
             </div>
           )}
 
+          {oauthError && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-600">{oauthError}</p>
+            </div>
+          )}
+
           <Button
             text={isPending ? 'Signing in...' : 'Sign In'}
             disabled={isPending}
           />
         </form>
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-tertiary-content">or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <a
+          href="/api/auth/google"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-primary px-4 py-2 text-sm font-medium text-primary-content transition-colors hover:border-accent hover:text-neutral"
+        >
+          <span className="flex size-5 items-center justify-center rounded-full bg-white text-sm font-bold text-[#4285F4]">
+            G
+          </span>
+          Continue with Google
+        </a>
 
         <div className="mt-6 text-center">
           <Link

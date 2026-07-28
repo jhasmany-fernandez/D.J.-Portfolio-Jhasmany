@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
+import { getAuthHeader } from '../../auth/_utils'
 
 const getBackendCandidates = () => {
   const urls = [
@@ -60,11 +61,13 @@ export async function PATCH(
   try {
     const body = await request.json()
     const { id } = await params
+    const authHeader = await getAuthHeader()
 
     const response = await fetchBackend(`/api/services/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       body: JSON.stringify(body),
     })
@@ -95,9 +98,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const authHeader = await getAuthHeader()
 
     const response = await fetchBackend(`/api/services/${id}`, {
       method: 'DELETE',
+      headers: {
+        ...authHeader,
+      },
     })
 
     if (!response.ok) {

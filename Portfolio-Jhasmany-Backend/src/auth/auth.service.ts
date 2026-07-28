@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan, MoreThanOrEqual } from 'typeorm';
@@ -9,6 +14,7 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { GoogleOAuthDto } from './dto/google-oauth.dto';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { LoginAttempt } from './entities/login-attempt.entity';
 import { EmailService } from '../common/services/email.service';
@@ -25,6 +31,21 @@ export class AuthService {
     private loginAttemptRepository: Repository<LoginAttempt>,
   ) {}
 
+  private buildAuthResponse(user: any) {
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        authProvider: user.authProvider,
+      },
+    };
+  }
+
   async validateUser(email: string, password: string, ipAddress?: string, userAgent?: string): Promise<any> {
     // Check if account is locked
     const isLocked = await this.isAccountLocked(email, ipAddress);
@@ -34,6 +55,11 @@ export class AuthService {
     }
 
     const user = await this.usersService.findByEmail(email);
+    if (user && !user.password) {
+      await this.recordLoginAttempt(email, ipAddress, userAgent, false, 'Google account without password');
+      throw new UnauthorizedException('This account uses Google sign-in. Use Google or reset your password to create one.');
+    }
+
     if (user && (await bcrypt.compare(password, user.password))) {
       // Reset failed attempts on successful login
       await this.resetFailedAttempts(email, ipAddress);
@@ -68,16 +94,7 @@ export class AuthService {
       throw new UnauthorizedException('Account is temporarily locked. Try again later.');
     }
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    };
+    return this.buildAuthResponse(user);
   }
 
   async register(createUserDto: CreateUserDto) {
@@ -90,6 +107,8 @@ export class AuthService {
     const user = await this.usersService.create({
       ...createUserDto,
       password: hashedPassword,
+      authProvider: 'email',
+      role: 'user',
     });
 
     const { password, ...result } = user;
@@ -137,8 +156,8 @@ export class AuthService {
     try {
       await this.emailService.sendPasswordResetEmail(user.email, resetToken, user.name);
     } catch (error) {
-      // Log error pero no fallar la operación
       console.error('Failed to send password reset email:', error);
+      throw new ServiceUnavailableException('Password reset email could not be sent. Check SMTP configuration.');
     }
 
     return { message: 'If the email exists, a password reset link has been sent.' };
@@ -176,7 +195,9 @@ export class AuthService {
     }
 
     // Verificar que la nueva contraseña no sea igual a la actual
-    const isSamePassword = await bcrypt.compare(newPassword, resetToken.user.password);
+    const isSamePassword = resetToken.user.password
+      ? await bcrypt.compare(newPassword, resetToken.user.password)
+      : false;
     if (isSamePassword) {
       throw new BadRequestException('New password must be different from current password');
     }
@@ -234,6 +255,67 @@ export class AuthService {
     }
 
     return { valid: true, message: 'Token is valid' };
+  }
+
+  async loginWithGoogle(googleOAuthDto: GoogleOAuthDto) {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      throw new ServiceUnavailableException('Google sign-in is not configured.');
+    }
+
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code: googleOAuthDto.code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: googleOAuthDto.redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    const tokenData: any = await tokenResponse.json().catch(() => ({}));
+    if (!tokenResponse.ok || !tokenData.access_token) {
+      throw new UnauthorizedException('Google authorization failed.');
+    }
+
+    const profileResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
+
+    const profile: any = await profileResponse.json().catch(() => ({}));
+    if (!profileResponse.ok || !profile.email || !profile.sub) {
+      throw new UnauthorizedException('Google profile could not be verified.');
+    }
+
+    if (!profile.email_verified) {
+      throw new UnauthorizedException('Google email must be verified.');
+    }
+
+    const email = String(profile.email).toLowerCase().trim();
+    let user = await this.usersService.findByEmail(email);
+
+    if (!user) {
+      throw new UnauthorizedException('This Google account is not authorized.');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('User account is not active');
+    }
+
+    if (!user.googleId || user.authProvider !== 'google') {
+      await this.usersService.linkGoogleAccount(user.id, profile.sub, profile.picture);
+      user = await this.usersService.findByEmail(email);
+    }
+
+    return this.buildAuthResponse(user);
   }
 
   // Login Attempt Security Methods

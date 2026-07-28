@@ -3,6 +3,7 @@
 import { useState, type ReactElement } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
 
 // Custom icons
 const DashboardIcon = () => (
@@ -101,6 +102,7 @@ interface SidebarItem {
   href?: string
   icon: () => ReactElement
   description: string
+  allowedRoles?: string[]
   submenu?: {
     label: string
     href: string
@@ -142,7 +144,8 @@ const sidebarItems: SidebarItem[] = [
     label: '_testimonials',
     href: '/dashboard/testimonials',
     icon: TestimonialsIcon,
-    description: 'Gestión de testimonios'
+    description: 'Gestión de testimonios',
+    allowedRoles: ['admin', 'visitor', 'testimonial']
   },
   {
     label: '_footer',
@@ -169,7 +172,9 @@ const sidebarItems: SidebarItem[] = [
 
 const Sidebar = () => {
   const pathname = usePathname()
+  const { user, loading } = useAuth()
   const [openMenus, setOpenMenus] = useState<string[]>(['_users'])
+  const currentRole = user?.role
 
   const toggleMenu = (label: string) => {
     setOpenMenus(prev =>
@@ -183,7 +188,15 @@ const Sidebar = () => {
     <aside className="bg-secondary border-border fixed left-0 top-16 h-[calc(100vh-4rem)] w-16 lg:w-64 border-r overflow-y-auto z-40 transition-all duration-300">
       <div className="p-4">
         <nav className="space-y-2">
-          {sidebarItems.map((item) => {
+          {!loading && sidebarItems
+            .filter((item) => {
+              if (!currentRole) return false
+              if (currentRole === 'testimonial') {
+                return item.href === '/dashboard/testimonials'
+              }
+              return !item.allowedRoles || item.allowedRoles.includes(currentRole)
+            })
+            .map((item) => {
             const { label, href, icon: Icon, description, submenu } = item
             const hasSubmenu = submenu && submenu.length > 0
             const isOpen = openMenus.includes(label)

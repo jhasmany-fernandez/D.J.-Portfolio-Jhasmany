@@ -1,13 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { pickLocalizedText } from '@/utils/i18n'
 import SectionHeading from '../SectionHeading/SectionHeading'
 import ServiceCard from './ServiceCard'
 
 interface Service {
   id: string
   title: string
+  titleEs?: string
   shortDescription: string
+  shortDescriptionEs?: string
   icon: string
   imageUrl?: string
   technologies?: string[]
@@ -30,10 +34,12 @@ interface ServiceSectionClientProps {
 }
 
 export default function ServiceSectionClient({ initialServices }: ServiceSectionClientProps) {
+  const { currentLanguage, t } = useLanguage()
   const [services, setServices] = useState<Service[]>(initialServices)
   const [subtitle, setSubtitle] = useState<string>(
     'I offer a wide range of services to ensure you have the best written code and stay ahead in the competition.'
   )
+  const [subtitleEs, setSubtitleEs] = useState<string>('')
 
   useEffect(() => {
     let isMounted = true
@@ -58,6 +64,7 @@ export default function ServiceSectionClient({ initialServices }: ServiceSection
           const sectionData = await sectionRes.json()
           if (isMounted) {
             setSubtitle(sectionData.subtitle)
+            setSubtitleEs(sectionData.subtitleEs || '')
           }
         }
       } catch (error) {
@@ -75,22 +82,22 @@ export default function ServiceSectionClient({ initialServices }: ServiceSection
   return (
     <section id="services" className="my-14">
       <SectionHeading
-        title="// Services / Offers:"
-        subtitle={subtitle}
+        title={t('section.services')}
+        subtitle={currentLanguage === 'Es' && subtitleEs ? subtitleEs : subtitle}
       />
 
       <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-8 md:mt-[3.75rem] md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[2200px]:grid-cols-5">
         {services.length === 0 ? (
           <div className="col-span-3 text-center py-12">
-            <p className="text-tertiary-content">No services available at the moment.</p>
+            <p className="text-tertiary-content">{t('empty.services')}</p>
           </div>
         ) : (
           services.map((service) => (
             <ServiceCard
               key={service.id}
               icon={service.icon}
-              title={service.title}
-              shortDescription={service.shortDescription}
+              title={pickLocalizedText(service, 'title', currentLanguage)}
+              shortDescription={pickLocalizedText(service, 'shortDescription', currentLanguage)}
               imageUrl={service.imageUrl}
               technologies={service.technologies}
               experienceLevel={service.experienceLevel}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag } from 'next/cache'
+import { getAuthHeader } from '../../auth/_utils'
 
 const getBackendURL = () => {
   if (typeof window === 'undefined') {
@@ -41,11 +42,13 @@ async function updateSkill(
   try {
     const body = await request.json()
     const backendURL = getBackendURL()
+    const authHeader = await getAuthHeader()
 
     const response = await fetch(`${backendURL}/api/skills/${params.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       body: JSON.stringify(body),
     })
@@ -97,8 +100,12 @@ export async function DELETE(
   try {
     const backendURL = getBackendURL()
     const { id } = await params
+    const authHeader = await getAuthHeader()
     const response = await fetch(`${backendURL}/api/skills/${id}`, {
       method: 'DELETE',
+      headers: {
+        ...authHeader,
+      },
     })
 
     if (!response.ok) {

@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('testimonials')
 export class Testimonial {
@@ -17,8 +20,14 @@ export class Testimonial {
   @Column({ nullable: true })
   title: string;
 
+  @Column({ nullable: true })
+  titleEs: string;
+
   @Column('text')
   feedback: string;
+
+  @Column('text', { nullable: true })
+  feedbackEs: string;
 
   @Column()
   image: string;
@@ -28,6 +37,13 @@ export class Testimonial {
 
   @Column({ default: true })
   isPublished: boolean;
+
+  @Column({ type: 'uuid', nullable: true })
+  authorId: string;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'authorId' })
+  author: User;
 
   @CreateDateColumn()
   createdAt: Date;

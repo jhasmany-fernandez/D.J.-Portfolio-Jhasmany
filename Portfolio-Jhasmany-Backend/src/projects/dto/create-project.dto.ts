@@ -12,6 +12,15 @@ export class CreateProjectDto {
   title: string;
 
   @ApiProperty({
+    description: 'Project title in Spanish',
+    example: 'Sitio Portfolio',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  titleEs?: string;
+
+  @ApiProperty({
     description: 'Project description',
     example: 'A modern portfolio website built with Next.js and NestJS',
     required: false,
@@ -19,6 +28,15 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiProperty({
+    description: 'Project description in Spanish',
+    example: 'Un sitio portfolio moderno construido con Next.js y NestJS',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  descriptionEs?: string;
 
   @ApiProperty({
     description: 'Project short description',
@@ -30,6 +48,15 @@ export class CreateProjectDto {
   shortDescription?: string;
 
   @ApiProperty({
+    description: 'Project short description in Spanish',
+    example: 'Un sitio portfolio moderno',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  shortDescriptionEs?: string;
+
+  @ApiProperty({
     description: 'Project detailed content',
     example: 'This project showcases...',
     required: false,
@@ -37,6 +64,15 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   content?: string;
+
+  @ApiProperty({
+    description: 'Project detailed content in Spanish',
+    example: 'Este proyecto muestra...',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  contentEs?: string;
 
   @ApiProperty({
     description: 'Technologies used',

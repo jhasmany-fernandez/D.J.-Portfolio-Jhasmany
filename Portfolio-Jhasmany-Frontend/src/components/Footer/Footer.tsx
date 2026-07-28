@@ -1,7 +1,6 @@
 'use client'
 
-import { footerLinks } from '@/appData'
-import { useLanguage } from '@/contexts/LanguageContext'
+import { useLanguage, type Language } from '@/contexts/LanguageContext'
 import { useEffect, useState } from 'react'
 import Logo from '../Navbar/Logo'
 import { Codepen, Facebook, GithubIcon, Instagram, LinkedIn, X } from '@/utils/icons'
@@ -24,16 +23,12 @@ interface FooterData {
 
 const normalizeLanguage = (value: string) => {
   const lower = value.toLowerCase()
-  if (lower === 'en') return 'En'
   if (lower === 'es') return 'Es'
-  if (lower === 'fr') return 'Fr'
-  if (lower === 'de') return 'De'
-  if (lower === 'ru') return 'Ru'
   return 'En'
 }
 
   const Footer = () => {
-  const { currentLanguage, setLanguage } = useLanguage()
+  const { currentLanguage, setLanguage, t } = useLanguage()
   const [footerData, setFooterData] = useState<FooterData>({
     companyName: 'Jhasmany Fernández',
     description: 'Full-Stack Developer specializing in modern web technologies.',
@@ -100,12 +95,17 @@ const normalizeLanguage = (value: string) => {
           <a
             href="#"
             className="text-neutral mt-3 inline-flex items-center gap-2 text-xs hover:underline">
-            More about me <span className="bg-neutral inline-block size-[10px] rounded-full" />
+            {t('footer.moreAbout')} <span className="bg-neutral inline-block size-[10px] rounded-full" />
           </a>
         </div>
 
         <div className="md:col-span-7 flex flex-wrap items-start gap-x-6 gap-y-2 md:justify-end">
-          {footerLinks.map((link) => (
+          {[
+            { title: t('footer.home'), href: '#' },
+            { title: t('footer.projects'), href: '#projects' },
+            { title: t('footer.testimonials'), href: '#testimonials' },
+            { title: t('footer.services'), href: '#services' },
+          ].map((link) => (
             <a
               href={link.href}
               key={link.href}
@@ -188,14 +188,14 @@ const normalizeLanguage = (value: string) => {
           )}
           <p className="text-tertiary-content flex flex-col text-xs leading-5">
             <span>© 2025 — Copyright</span>
-            <span>All Rights reserved</span>
+            <span>{t('footer.rights')}</span>
           </p>
         </div>
 
         <div className="md:col-span-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
             <div className="flex flex-col">
-              <h5 className="text-neutral mb-2 text-base font-medium">Contact Us</h5>
+              <h5 className="text-neutral mb-2 text-base font-medium">{t('footer.contact')}</h5>
               <a
                 href={`mailto:${footerData.email}`}
                 className="text-tertiary-content hover:text-neutral text-sm transition-colors duration-300">
@@ -210,7 +210,7 @@ const normalizeLanguage = (value: string) => {
           </div>
 
           <div>
-            <h5 className="text-neutral mb-2 text-base font-medium">Location</h5>
+            <h5 className="text-neutral mb-2 text-base font-medium">{t('footer.location')}</h5>
             <address className="text-tertiary-content flex flex-col text-sm not-italic">
               <span>{footerData.locationLine1}</span>
               <span>{footerData.locationLine2}</span>
@@ -218,21 +218,23 @@ const normalizeLanguage = (value: string) => {
           </div>
 
           <div>
-            <p className="text-neutral mb-2 text-base font-medium">Languages</p>
+            <p className="text-neutral mb-2 text-base font-medium">{t('footer.languages')}</p>
             <div className="flex flex-wrap gap-4">
-              {(footerData.availableLanguages || ['en', 'es']).map((rawLanguage) => {
-                const language = normalizeLanguage(rawLanguage)
+              {(footerData.availableLanguages || ['en', 'es'])
+                .map((rawLanguage) => normalizeLanguage(rawLanguage))
+                .filter((language, index, languages) => languages.indexOf(language) === index)
+                .map((language) => {
                 return (
                 <button
-                  key={rawLanguage}
-                  onClick={() => setLanguage(language)}
+                  key={language}
+                  onClick={() => setLanguage(language as Language)}
                   className={`cursor-pointer transition-colors duration-300 hover:text-neutral uppercase ${
                     language === currentLanguage
                       ? 'text-neutral font-medium'
                       : 'text-tertiary-content hover:text-neutral/80'
                   }`}
                 >
-                  {rawLanguage}
+                  {language.toLowerCase()}
                 </button>
                 )
               })}

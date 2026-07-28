@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { BurgerIcon, CloseIcon } from '../../utils/icons'
 import Logo from './Logo'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const HomeIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -44,47 +45,48 @@ const LoginIcon = () => (
 const navItems = [
   {
     icon: HomeIcon,
-    label: '_home',
+    labelKey: 'nav.home',
     href: '/',
   },
   {
     icon: ProjectsIcon,
-    label: '_projects',
+    labelKey: 'nav.projects',
     href: '/#projects',
   },
   {
     icon: ServicesIcon,
-    label: '_services',
+    labelKey: 'nav.services',
     href: '/#services',
   },
   {
     icon: TestimonialsIcon,
-    label: '_testimonials',
+    labelKey: 'nav.testimonials',
     href: '/#testimonials',
   },
   {
     icon: LoginIcon,
-    label: '_login',
+    labelKey: 'nav.login',
     href: '/auth/login',
   },
-]
+] as const
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(false)
   const pathname = usePathname()
+  const { t } = useLanguage()
   const shouldHideNavItems = pathname === '/auth/login' || pathname === '/auth/register' || pathname === '/newsletter/subscribe'
 
   // Function to get the display name based on the current route
   const getDisplayName = () => {
     switch (pathname) {
       case '/auth/login':
-        return 'login'
+        return t('route.login')
       case '/auth/register':
-        return 'register'
+        return t('route.register')
       case '/newsletter/subscribe':
-        return 'subscribe'
+        return t('route.subscribe')
       default:
-        return 'Jhasmany_Fernandez'
+        return t('brand.name')
     }
   }
 
@@ -118,7 +120,7 @@ const Navbar = () => {
           <>
             <ul
               className={`${isVisible ? 'flex' : 'hidden'} animate-fade-in bg-primary border-border absolute top-16 left-2 z-20 max-h-[70vh] w-[86vw] max-w-xs flex-col overflow-y-auto rounded-xl border shadow-xl md:hidden`}>
-              {navItems.map(({ icon: Icon, label, href }) => (
+              {navItems.map(({ icon: Icon, labelKey, href }) => (
                 <li
                   key={`mobile-${href}`}
                   onClick={() => setIsVisible(false)}
@@ -129,21 +131,21 @@ const Navbar = () => {
                     <span aria-hidden="true" className="text-accent leading-none">
                       <Icon />
                     </span>
-                    <span>{label}</span>
+                    <span>{t(labelKey)}</span>
                   </Link>
                 </li>
               ))}
             </ul>
 
             <ul className="hidden h-full w-[74%] md:flex md:flex-row 2xl:w-[78%]">
-              {navItems.map(({ label, href }) => (
+              {navItems.map(({ labelKey, href }) => (
                 <li
                   key={`desktop-${href}`}
                   className="border-border flex items-center border-e px-4 text-base first:border-s last:ml-auto last:border-none last:px-0 lg:px-8">
                   <Link
                     href={href}
                     className={`text-primary-content hover:text-neutral w-full py-0 transition-all duration-150 ${pathname === href ? 'text-neutral cursor-text' : ''}`}>
-                    {label}
+                    {t(labelKey)}
                   </Link>
                 </li>
               ))}

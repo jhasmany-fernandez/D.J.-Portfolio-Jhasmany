@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthHeader } from '../../auth/_utils';
 
 export async function GET() {
   try {
@@ -35,9 +36,13 @@ export async function POST(request: NextRequest) {
 
     // Forward the request to the backend
     const backendUrl = process.env.API_URL || 'http://backend:3001';
+    const authHeader = await getAuthHeader();
 
     const response = await fetch(`${backendUrl}/api/upload/image`, {
       method: 'POST',
+      headers: {
+        ...authHeader,
+      },
       body: formData,
     });
 

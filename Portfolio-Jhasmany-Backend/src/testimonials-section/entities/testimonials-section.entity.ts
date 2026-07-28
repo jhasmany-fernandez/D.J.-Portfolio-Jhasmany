@@ -14,6 +14,9 @@ export class TestimonialsSection {
   @Column('text')
   subtitle: string;
 
+  @Column('text', { nullable: true })
+  subtitleEs: string;
+
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 

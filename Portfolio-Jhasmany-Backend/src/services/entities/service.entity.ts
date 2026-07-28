@@ -17,8 +17,14 @@ export class Service {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  titleEs: string;
+
   @Column('text')
   shortDescription: string;
+
+  @Column('text', { nullable: true })
+  shortDescriptionEs: string;
 
   @Column({ nullable: true })
   icon: string;

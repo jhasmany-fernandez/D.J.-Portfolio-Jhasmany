@@ -7,6 +7,8 @@ export interface AuthResponse {
     id: string
     name: string
     email: string
+    role: string
+    isActive?: boolean
   }
   token?: string
 }
@@ -99,7 +101,7 @@ export const authService = {
       }
 
       const payload = await response.json()
-      return payload.user || null
+      return payload.user || payload || null
     } catch (error) {
       console.error('Get current user error:', error)
       return null

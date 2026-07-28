@@ -9,11 +9,17 @@ import {
   UseInterceptors,
   BadRequestException,
   Res,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { Response } from 'express';
 import { UploadService } from './upload.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { isVisitor } from '../auth/utils/demo-response';
 
 type UploadedImageFile = {
   originalname: string;
@@ -27,6 +33,8 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('image')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'testimonial', 'visitor')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -59,9 +67,19 @@ export class UploadController {
       },
     }),
   )
-  async uploadImage(@UploadedFile() file: UploadedImageFile) {
+  async uploadImage(@UploadedFile() file: UploadedImageFile, @Request() req) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
+    }
+
+    if (isVisitor(req)) {
+      return {
+        success: true,
+        url: '/portfolio-assets/uploads/demo-visitor-image.svg',
+        imageId: 'demo-visitor-image',
+        originalName: file.originalname,
+        __demo: true,
+      };
     }
 
     const storedImage = await this.uploadService.createImage(file);
@@ -99,7 +117,13 @@ export class UploadController {
   }
 
   @Delete('image/:id')
-  async deleteImageById(@Param('id') id: string) {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'visitor')
+  async deleteImageById(@Param('id') id: string, @Request() req) {
+    if (isVisitor(req)) {
+      return { success: true, __demo: true };
+    }
+
     const deleted = await this.uploadService.deleteImageById(id);
     if (!deleted) {
       throw new NotFoundException(`Image with ID ${id} not found`);

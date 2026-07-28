@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidateTag, revalidatePath } from 'next/cache'
+import { getAuthHeader } from '../auth/_utils'
 
 const getBackendURL = () => {
   if (typeof window === 'undefined') {
@@ -59,12 +60,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const backendURL = getBackendURL()
+    const authHeader = await getAuthHeader()
 
 
     const response = await fetch(`${backendURL}/api/home`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       body: JSON.stringify(body),
     })

@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { pickLocalizedText } from '@/utils/i18n'
 import { Testimonial } from '@/lib/types'
 import SectionHeading from '../SectionHeading/SectionHeading'
 import TestimonialCard from './TestimonialCard'
@@ -10,11 +12,13 @@ interface TestimonialSectionClientProps {
 }
 
 export default function TestimonialSectionClient({ initialTestimonials }: TestimonialSectionClientProps) {
+  const { currentLanguage, t } = useLanguage()
   const [testimonials, setTestimonials] = useState<Testimonial[]>(initialTestimonials)
   const [activeCard, setActiveCard] = useState(0)
   const [subtitle, setSubtitle] = useState<string>(
     "Don't just take our word for it - see what actual users of our service have to say about their experience."
   )
+  const [subtitleEs, setSubtitleEs] = useState<string>('')
 
   useEffect(() => {
     let isMounted = true
@@ -38,6 +42,7 @@ export default function TestimonialSectionClient({ initialTestimonials }: Testim
           const sectionData = await sectionRes.json()
           if (isMounted) {
             setSubtitle(sectionData.subtitle)
+            setSubtitleEs(sectionData.subtitleEs || '')
           }
         }
       } catch (error) {
@@ -55,13 +60,13 @@ export default function TestimonialSectionClient({ initialTestimonials }: Testim
   return (
     <section id="testimonials">
       <SectionHeading
-        title="// Testimonials"
-        subtitle={subtitle}
+        title={t('section.testimonials')}
+        subtitle={currentLanguage === 'Es' && subtitleEs ? subtitleEs : subtitle}
       />
 
       {testimonials.length === 0 ? (
         <div className="my-8 text-center py-12">
-          <p className="text-tertiary-content">No testimonials available at the moment.</p>
+          <p className="text-tertiary-content">{t('empty.testimonials')}</p>
         </div>
       ) : (
         <>
@@ -69,7 +74,11 @@ export default function TestimonialSectionClient({ initialTestimonials }: Testim
             {testimonials.map((testimonial, idx) => (
               <TestimonialCard
                 key={testimonial.id || idx}
-                testimonial={testimonial}
+                testimonial={{
+                  ...testimonial,
+                  title: pickLocalizedText(testimonial, 'title', currentLanguage),
+                  feedback: pickLocalizedText(testimonial, 'feedback', currentLanguage),
+                }}
                 handleActiveCard={() => {
                   setActiveCard(idx)
                 }}
