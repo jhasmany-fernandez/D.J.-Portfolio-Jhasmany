@@ -3,6 +3,7 @@ import './globals.css'
 
 import FooterWrapper from '@/components/Footer/FooterWrapper'
 import NavigationWrapper from '@/components/Navigation/NavigationWrapper'
+import PublicInteractionGuard from '@/components/Security/PublicInteractionGuard'
 import ThemeMenu from '@/components/Theme/ThemeMenu'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 // import { Fira_Code } from 'next/font/google'
@@ -56,6 +57,7 @@ export default function RootLayout({
       suppressHydrationWarning>
       <body className="notranslate" translate="no" suppressHydrationWarning>
         <LanguageProvider>
+          <PublicInteractionGuard />
           <NavigationWrapper />
           {children}
           <ThemeMenu />

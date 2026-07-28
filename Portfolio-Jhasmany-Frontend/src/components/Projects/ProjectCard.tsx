@@ -48,11 +48,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ data }) => {
   const localizedShortDescription = pickLocalizedText(data, 'shortDescription', currentLanguage)
 
   return (
-    <div className="bg-secondary border-border flex min-h-[18rem] flex-col justify-between rounded-[14px] border p-5 sm:p-6 lg:p-7">
+    <div className="group bg-secondary border-border hover:border-accent flex min-h-[18rem] flex-col justify-between rounded-[14px] border p-5 transition-all duration-300 hover:shadow-xl hover:shadow-accent/10 sm:p-6 lg:p-7">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex flex-col flex-wrap gap-3 sm:flex-row sm:items-center">
-            <h3 className="text-secondary-content text-lg font-medium md:font-semibold">{localizedTitle}</h3>
+            <h3 className="text-secondary-content text-lg font-medium transition-colors group-hover:text-accent/90 md:font-semibold">{localizedTitle}</h3>
             {type && (
               <span
                 className={`h-7 w-fit rounded-md bg-[#FFFFFF1A] p-1 text-sm ${type === 'New 🔥' ? 'animate-blink text-tag' : 'text-accent'} backdrop-blur-[80px]`}>

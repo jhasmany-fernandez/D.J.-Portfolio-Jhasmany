@@ -10,8 +10,12 @@ export class SeedSpanishContent1735735100000 implements MigrationInterface {
         "greetingEs" = COALESCE("greetingEs", 'Hola, soy Jhasmany Fernandez'),
         "rolesEs" = COALESCE("rolesEs", 'DESARROLLADOR SOFTWARE,DESARROLLADOR BACKEND,DESARROLLADOR FRONTEND,ENTUSIASTA DEVOPS,ESTUDIANTE DE HACKING ETICO'),
         "descriptionEs" = COALESCE("descriptionEs", 'Construyo aplicaciones web, APIs y sistemas administrativos. Tengo experiencia en desarrollo backend, frontend, bases de datos, Docker y despliegue de aplicaciones. Actualmente estoy ampliando mis habilidades en desarrollo movil, ciberseguridad y hacking etico.'),
-        "primaryButtonTextEs" = COALESCE("primaryButtonTextEs", 'Acceso Personal'),
-        "secondaryButtonTextEs" = COALESCE("secondaryButtonTextEs", 'Newsletter Clientes')
+        "primaryButtonText" = 'View Projects',
+        "primaryButtonTextEs" = 'Ver Proyectos',
+        "primaryButtonUrl" = '/#projects',
+        "secondaryButtonText" = 'Request Service',
+        "secondaryButtonTextEs" = 'Solicitar Servicio',
+        "secondaryButtonUrl" = '/#services'
     `);
 
     await queryRunner.query(`
